@@ -1,0 +1,77 @@
+/***********************************
+* Global Style - Background Color  *
+************************************/
+
+body {
+  padding-left: 30px;
+}
+
+.webRtcTestDiv div {
+  width: 100%;
+}
+
+.videoDiv div {
+  display: inline-block;
+  background-color: green;
+  width: 20%;
+  height: 100;
+}
+
+.canvasDiv div {
+  width: 20%;
+  height: 100;
+  display: inline-block;
+  background-color: blue;
+}
+
+canvas {
+  width: 40%;
+  height: 100px;
+  background-color: grey;
+}
+
+video {
+  background-color: grey;
+  width: 40%;
+}
+
+/**********************
+* Global Button Style *
+***********************/
+ul {
+  display: inline-block;
+  padding: 0px;
+  margin: 0px;
+  height: 0px;
+}
+li {
+  display: inline-block;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 20px;
+  padding-right: 20px;
+  border: 2px solid;
+  border-radius: 10px;
+}
+
+/***********************************************
+* Sample Sound Test - Sample Sound Button Style *
+************************************************/
+.voiceRecordDiv p {
+  font-size: 18px;
+  font-weight: bold;
+  display: inline-block;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 10px;
+  padding-right: 15px;
+}
+.voiceRecordDiv li {
+  border-color: black;
+}
+.voiceRecordDiv li:hover {
+  border-color: black;
+}
+.voiceRecordDiv .selected {
+  background-color: blue;
+}

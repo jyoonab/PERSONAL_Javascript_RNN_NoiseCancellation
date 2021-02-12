@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+    <head>
+      <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+
+
+      <!--Add JS Files-->
+      <script src="webRtc.js"></script>
+      <script src="streamvisualizer.js"></script>
+      <script src="rnnoise-runtime.js"></script>
+      <script src="index.js" async></script>
+      <script src="soundControler.js" async></script>
+      <!--Add Stylesheet-->
+      <link rel="stylesheet" href="index.css"/>
+
+    </head>
+
+    <body>
+        <img src="webrtc.png">
+        <h1>RNN Based Noise Reduction Test Page ver 1.0.0</h1>
+
+        <h2>Device Settings</h2>
+        <table>
+            <tr>
+                <td>Input</td>
+                <td><select id="inputDevice"></select></td>
+            </tr>
+            <tr>
+                <td>Output</td>
+                <td><select id="outputDevice"></select></td>
+            </tr>
+            <tr>
+                <td>Video</td>
+                <td><select id="videoDevice"></select></td>
+            </tr>
+        </table>
+        <br/><br/>
+
+        <!-- Test Region Starts Here -->
+        <div class="webRtcTestDiv">
+            <div class="videoDiv">
+              <video id="localVideo" playsinline autoplay muted></video>
+              <video id="remoteVideo" playsinline autoplay></video>
+            </div>
+            <canvas id="localVoiceCanvas"></canvas>
+            <canvas id="remoteVoiceCanvas"></canvas>
+          </div>
+        </div>
+        <div class="voiceRecordDiv">
+          <ul>
+            <li id="echoToggle" onclick="setButton('EchoToggle')">Echo Off</li>
+            <li id="rnnoiseToggle" onclick="setButton('RNNoiseToggle')">RNNoise Off</li>
+            <li id="webrtcToggle" onclick="setButton('WebRtcToggle')">WebRtc Off</li>
+          </ul>
+        </div>
+    </body>
+</html>

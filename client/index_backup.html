@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+    <head>
+      <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+      <!--Add JS Files-->
+      <script src="webRtc.js"></script>
+      <script src="streamvisualizer.js"></script>
+      <script src="index.js" async></script>
+      <script src="soundControler.js" async></script>
+      <!--Add Stylesheet-->
+      <link rel="stylesheet" href="index.css"/>
+    </head>
+
+    <body>
+        <h1>JSDenoiser Test Page</h1>
+        <h2>Webrtc Live Test</h2>
+        <!--
+        WebRTC Starts Here
+        -->
+        <div class="webRtcTestDiv">
+          <div>
+            <p id="uniqueId">No Id Provided Yet</p>
+            <video id="localVideo" playsinline autoplay muted style="width:40%;"></video>
+            <video id="remoteVideo" playsinline autoplay style="width:40%;"></video>
+          </div>
+          <div>
+            <canvas id="audioStreamVisualizerWebRtcVer"></canvas>
+            <br />
+            <button id="videoStartButton">Start Video</button>
+            <button id="streamStartButton">Start Stream</button>
+            <button id="hangUpButton">Hang Up</button>
+          </div>
+        </div>
+
+        <br/><br/>
+
+        <!--
+        Sample Sound Test Starts Here
+        -->
+        <h2>Sample Sound Test</h2>
+
+        <div id="audioRegion" class="audioDiv">
+          <div>
+              <p>Noisy Sound</p>
+              <audio id="noisyAudio" controls>
+                <source id="audioSource">
+              Your browser does not support the audio element.
+              </audio>
+          </div>
+          <div>
+            <p>Denoised Sound</p>
+            <audio id="denoisedAudio" controls>
+              <source id="audioSource">
+            Your browser does not support the audio element.
+            </audio>
+          </div>
+        </div>
+
+        <!-- Voice Record -->
+        <div id="voiceRecord" class="voiceRecordDiv">
+          <canvas id="audioStreamVisualizerVoiceRecordVer"></canvas>
+          <ul>
+            <li onclick="setButton(this, 'RecordButton', 'Record')">Record</li>
+            <li onclick="setButton(this, 'RecordButton', 'Stop')" id="defaultRecordButton">Stop</li>
+            <p id="recordStatus"></p>
+          </ul>
+        </div>
+
+        <!-- Sample Sound Button -->
+        <div id="sampleSound" class="sampleSoundButtonDiv">
+          <ul>
+            <p>Sample Sound<p/>
+            <li onclick="setButton(this, 'SampleSoundButton', 'KR Speech')" id="defaultSampleSoundButton">KR Speech</li>
+            <li onclick="setButton(this, 'SampleSoundButton', 'EN Speech')">EN Speech</li>
+            <li onclick="setButton(this, 'SampleSoundButton', 'Music')">Music</li>
+          </ul>
+        </div>
+        <!-- File Input -->
+        <input id="fileInput" style="color:black;" type="file" accept="audio/*" />
+        <!-- Target Sound Button -->
+        <div class="targetSoundButtonDiv">
+          <ul>
+            <p>Target Sound<p/>
+            <li onclick="setButton(this, 'TargetSoundButton', 'VoiceRecord')" id="defaultTargetSoundButton">Voice Record</li>
+            <li onclick="setButton(this, 'TargetSoundButton', 'UploadFile')">Upload File</li>
+            <li onclick="setButton(this, 'TargetSoundButton', 'SampleAudioFile')">Sample Audio Files</li>
+          </ul>
+        </div>
+        <!-- Insert Noise Button -->
+        <div class="insertNoiseButtonDiv">
+          <ul>
+            <p>Insert Noise<p/>
+            <li onclick="setButton(this, 'InsertNoiseButton', 'InsertNoiseNone')" id="defaultInsertNoiseButton">None</li>
+            <li onclick="setButton(this, 'InsertNoiseButton', 'WhiteNoise')">White Noise</li>
+            <li onclick="setButton(this, 'InsertNoiseButton', 'PinkNoise')">Pink Noise</li>
+            <li onclick="setButton(this, 'InsertNoiseButton', 'BrownianNoise')">Brownian Noise</li>
+          </ul>
+        </div>
+        <!-- Noise Level Button -->
+        <div class="noiseLevelButtonDiv">
+          <ul>
+            <p>Noise Level<p/>
+            <li onclick="setButton(this, 'NoiseLevelButton', 'NoiseLevelNone')" id="defaultNoiseLevelButton">None</li>
+            <li onclick="setButton(this, 'NoiseLevelButton', '0dB')">0 dB</li>
+            <li onclick="setButton(this, 'NoiseLevelButton', '5dB')">5 dB</li>
+            <li onclick="setButton(this, 'NoiseLevelButton', '10dB')">10 dB</li>
+            <li onclick="setButton(this, 'NoiseLevelButton', '15dB')">15 dB</li>
+            <li onclick="setButton(this, 'NoiseLevelButton', '20dB')">20 dB</li>
+          </ul>
+        </div>
+    </body>
+</html>
