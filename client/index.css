@@ -81,6 +81,8 @@ li {
 
 #chart_container {
   position: relative;
+  border: 30px solid;
+  border-color: transparent;
 }
 
 #demo_chart {
@@ -91,6 +93,6 @@ li {
 #y_axis {
   position: absolute;
   top: 0;
-  bottom: 0;
+  bottom: 10;
   width: 40px;
 }

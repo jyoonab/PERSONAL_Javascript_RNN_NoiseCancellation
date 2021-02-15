@@ -10,10 +10,10 @@ function PsnrVisualizer(originalStream, denoisedStream, demoChart) {
   chart2 = new Rickshaw.Graph({
       element: demoChart,
       width: "300",
-      height: "300",
+      height: "150",
       renderer: "line",
       min: "0",
-      max: "140",
+      max: "100",
       series: new Rickshaw.Series.FixedDuration([{
           name: 'one',
           color: '#446CB3'
