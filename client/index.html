@@ -4,10 +4,16 @@
       <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
 
+      <!-- For Rickshaw Graph -->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.2.0/d3.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/rickshaw/1.6.5/rickshaw.js"></script>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/rickshaw/1.6.3/rickshaw.min.css"/>
 
       <!--Add JS Files-->
       <script src="webRtc.js"></script>
       <script src="streamvisualizer.js"></script>
+      <script src="psnrVisualizer.js"></script>
       <script src="rnnoise-runtime.js"></script>
       <script src="index.js" async></script>
       <script src="soundControler.js" async></script>
@@ -45,8 +51,13 @@
             </div>
             <canvas id="localVoiceCanvas"></canvas>
             <canvas id="remoteVoiceCanvas"></canvas>
-          </div>
         </div>
+
+        <div id="chart_container">
+          <div id="y_axis"></div>
+          <div id="demo_chart"></div>
+        </div>
+
         <div class="voiceRecordDiv">
           <ul>
             <li id="echoToggle" onclick="setButton('EchoToggle')">Echo Off</li>

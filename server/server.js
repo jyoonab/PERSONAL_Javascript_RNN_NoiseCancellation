@@ -62,6 +62,9 @@ const handleRequest = function(request, response) {
     } else if(request.url === '/webrtc.png') {
         response.writeHead(200, {'Content-Type': 'image/png'});
         response.end(fs.readFileSync('src/webrtc.png'));
+    } else if(request.url === '/psnrVisualizer.js') {
+        response.writeHead(200, {'Content-Type': 'application/javascript'});
+        response.end(fs.readFileSync('client/psnrVisualizer.js'));
     }
 };
 

@@ -1,5 +1,6 @@
 var streamVisualizerWebRtc;
 var streamVisualizerVoiceRecord;
+var streamVisualizerPsnr;
 var webRtc = null;
 var isEchoActivated = false;
 var isRNNoiseActivated = false;
@@ -22,6 +23,10 @@ var peerConnectionConfig = {
 /*********************************
 Initializing Elements
 *********************************/
+
+// temp
+var demoChart = document.querySelector("#demo_chart");
+
 // Select (Where I/O Device Information is Saved)
 const inputDevice = document.getElementById('inputDevice');
 const outputDevice = document.getElementById('outputDevice');
@@ -34,6 +39,7 @@ const remoteVideo = document.getElementById('remoteVideo');
 // Canvas
 const localVoiceCanvas = document.getElementById('localVoiceCanvas');
 const remoteVoiceCanvas = document.getElementById('remoteVoiceCanvas');
+const psnrCanvas = document.getElementById('psnrCanvas');
 
 // Button
 const echoToggle = document.getElementById('echoToggle');
@@ -62,7 +68,7 @@ async function pageStart()
 
     var constraints = {
       video: videoInputsInformation.length != 0 ? { deviceId: audioSource ? {exact: audioSource} : undefined } : false,
-      audio: audioInputsInformation.length != 0 ?  { deviceId: audioSource ? {exact: audioSource} : undefined } : false
+      audio: audioInputsInformation.length != 0 ? { deviceId: audioSource ? {exact: audioSource} : undefined } : false
     };
 
     if(navigator.mediaDevices.getUserMedia)
@@ -186,6 +192,11 @@ async function getUserMediaSuccess(stream)
     // start stream visualizer(Voice Record)
     streamVisualizerVoiceRecord = new StreamVisualizer(originalStream, remoteVoiceCanvas);
     streamVisualizerVoiceRecord.start();
+
+    // psnr canvas
+    console.log('demochart: ', demoChart);
+    streamVisualizerPsnr = new PsnrVisualizer(originalStream, denoisedStream, demoChart);
+    streamVisualizerPsnr.start();
 }
 
 // swap b/w denoised & original stream for self test
@@ -203,7 +214,6 @@ function swapStreamForSelfTest()
       else
       {
           updateProcessedStream(originalStream);
-
       }
       selfTestAudio.srcObject = processedStream;
 

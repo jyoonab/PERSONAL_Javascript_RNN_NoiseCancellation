@@ -75,3 +75,22 @@ li {
 .voiceRecordDiv .selected {
   background-color: blue;
 }
+
+
+/*Temp*/
+
+#chart_container {
+  position: relative;
+}
+
+#demo_chart {
+  position: relative;
+  left: 40px;
+}
+
+#y_axis {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+}
