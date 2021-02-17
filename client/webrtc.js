@@ -77,8 +77,6 @@ function setPeerConnection(inputStream){
 
 function gotMessageFromServer(message)
 {
-    console.log("received message : ", message);
-    console.log("Peer Connection : ", peerConnection.connectionState);
     if(!peerConnection) startCalling(false);
 
     var signal = JSON.parse(message.data);
@@ -126,10 +124,7 @@ function gotIceCandidate(event)
 
 function createdDescription(description)
 {
-    console.log("a");
     peerConnection.setLocalDescription(description).then(function() {
-        console.log("sending message : ", peerConnection.localDescription);
-        //console.log("websocket status : ", serverConnection.readyState);
         serverConnection.send(JSON.stringify({'sdp': peerConnection.localDescription, 'uuid': uuid}));
     }).catch(errorHandler);
 }
@@ -144,16 +139,10 @@ function resetPeerConnect()
 {
   if(peerConnection.connectionState === 'closed')
   {
-    //serverConnection.close();
-    //this.socketConnect();
-
     peerConnection = new RTCPeerConnection(peerConnectionConfig);
 
     streamVideoTrack = localStream.getVideoTracks()[0];
     streamAudioTrack = localStream.getAudioTracks()[0];
-
-    console.log('streamVideoTrack', streamVideoTrack);
-    console.log('streamAudioTrack', streamAudioTrack);
 
     if(streamVideoTrack != undefined)
       videoSender = peerConnection.addTrack(streamVideoTrack, localStream);
@@ -161,8 +150,6 @@ function resetPeerConnect()
 
     peerConnection.onicecandidate = gotIceCandidate;
     peerConnection.ontrack = gotRemoteStream;
-
-    console.log("websocket status : ", serverConnection.readyState);
   }
 }
 
