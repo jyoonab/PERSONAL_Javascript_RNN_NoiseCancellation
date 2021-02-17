@@ -57,7 +57,7 @@ li {
 /***********************************************
 * Sample Sound Test - Sample Sound Button Style *
 ************************************************/
-.voiceRecordDiv p {
+.buttonDiv p {
   font-size: 18px;
   font-weight: bold;
   display: inline-block;
@@ -66,13 +66,13 @@ li {
   padding-left: 10px;
   padding-right: 15px;
 }
-.voiceRecordDiv li {
+.buttonDiv li {
   border-color: black;
 }
-.voiceRecordDiv li:hover {
+.buttonDiv li:hover {
   border-color: black;
 }
-.voiceRecordDiv .selected {
+.buttonDiv .selected {
   background-color: blue;
 }
 
@@ -81,8 +81,11 @@ li {
 
 #chart_container {
   position: relative;
-  border: 30px solid;
+  border-top: 10px solid;
+  border-left: 10px solid;
+  border-bottom: 30px solid;
   border-color: transparent;
+  width: 340px;
 }
 
 #demo_chart {

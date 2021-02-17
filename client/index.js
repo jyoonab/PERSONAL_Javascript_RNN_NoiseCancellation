@@ -46,6 +46,9 @@ const echoToggle = document.getElementById('echoToggle');
 const rnnoiseToggle = document.getElementById('rnnoiseToggle');
 const webrtcToggle = document.getElementById('webrtcToggle');
 
+// Pragraph
+const rnnoiseSpeedMeter = document.getElementById('rnnoiseSpeedMeter');
+
 /*********************************
 * Initializing Inputs
 *********************************/
@@ -161,12 +164,9 @@ async function getUserMediaSuccess(stream)
     elapsedTime = endTime - startTime;
     console.log('elapsed time ', elapsedTime);
 
-    //console.log('video track', denoisedStream.getVideoTracks()[0]);
-    //console.log('audio track', denoisedStream.getAudioTracks()[0]);
-
     // As Default, Turn on self-test
     swapStreamForSelfTest();
-    selfTestAudio.play();
+    //selfTestAudio.play();
 
     // Initialize WebRTC
     if(webRtc === null)

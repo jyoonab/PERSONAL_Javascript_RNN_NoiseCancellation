@@ -53,12 +53,16 @@
             <canvas id="remoteVoiceCanvas"></canvas>
         </div>
 
-        <div id="chart_container">
-          <div id="y_axis"></div>
-          <div id="demo_chart"></div>
+        <div>
+          <p>PSNR Meter</p>
+          <div id="chart_container">
+            <div id="y_axis"></div>
+            <div id="demo_chart"></div>
+          </div>
+          <p id="rnnoiseSpeedMeter">RNNoise Speed : 0 ms</p>
         </div>
 
-        <div class="voiceRecordDiv">
+        <div class="buttonDiv">
           <ul>
             <li id="echoToggle" onclick="setButton('EchoToggle')">Echo Off</li>
             <li id="rnnoiseToggle" onclick="setButton('RNNoiseToggle')">RNNoise Off</li>

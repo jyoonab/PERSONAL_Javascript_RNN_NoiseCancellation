@@ -1,13 +1,15 @@
-var updateInterval = 100;
-
 // Interesting parameters to tweak!
 const PSNR_SMOOTHING = 0.8;
 const PSNR_FFT_SIZE = 2048;
 
-var demoChart, chart2, y_axis;
+var chartBody, yAxis;
+var updateInterval = 100;
+var startTime = null;
+var endTime = null;
+var elapsedTime = 0;
 
 function PsnrVisualizer(originalStream, denoisedStream, demoChart) {
-  chart2 = new Rickshaw.Graph({
+  chartBody = new Rickshaw.Graph({
       element: demoChart,
       width: "300",
       height: "150",
@@ -23,11 +25,11 @@ function PsnrVisualizer(originalStream, denoisedStream, demoChart) {
       })
   });
 
-  y_axis = new Rickshaw.Graph.Axis.Y({
-      graph: chart2,
+  yAxis = new Rickshaw.Graph.Axis.Y({
+      graph: chartBody,
       orientation: 'left',
       tickFormat: function (y) {
-          return y.toFixed(2);
+          return y.toFixed(0);
       },
       ticks: 5,
       element: document.getElementById('y_axis'),
@@ -85,10 +87,10 @@ PsnrVisualizer.prototype.draw = function() {
   this.analyserFromDenoisedStream.getByteTimeDomainData(this.streamDataFromDenoisedStream);
 
   let tmpData = {
-            one: this.getPsnr(this.streamDataFromOriginalStream, this.streamDataFromDenoisedStream) != Infinity ? this.getPsnr(this.streamDataFromOriginalStream, this.streamDataFromDenoisedStream) : 0
+            one: this.getPsnr(this.streamDataFromOriginalStream, this.streamDataFromDenoisedStream) != Infinity ? this.getPsnr(this.streamDataFromOriginalStream, this.streamDataFromDenoisedStream) : 0,
   };
-  chart2.series.addData(tmpData);
-  chart2.render();
+  chartBody.series.addData(tmpData);
+  chartBody.render();
 
   requestAnimationFrame(this.draw.bind(this));
 };
@@ -101,8 +103,25 @@ PsnrVisualizer.prototype.getFrequencyValue = function(freq) {
 
 // get Peak Signal-to-Noise Ratio(PSNR) of two data
 // this this function compares Original Stream(MAXi) and Denoised Stream(MSE)
-PsnrVisualizer.prototype.getPsnr = function(maxi, mse){
-  return Math.abs(20*Math.log10(this.getMse(maxi)) - 10*Math.log10(this.getMse(mse)));
+PsnrVisualizer.prototype.getPsnr = function(originalStreamData, denoisedStreamData){
+  var maxI = this.getMse(originalStreamData);
+  var mse = this.getMse(denoisedStreamData);
+
+  // Calculate time difference between original & denoised stream fluctuation
+  // so 'elapsedTime' shows how fast RNNoise is(ms)
+  if(maxI > 1000 && elapsedTime === 0)
+    startTime = new Date();
+
+  if(mse > 1000 && elapsedTime === 0)
+  {
+    endTime = new Date();
+    elapsedTime = endTime - startTime;
+    rnnoiseSpeedMeter.innerHTML = "RNNoise Speed : " + elapsedTime + " ms";
+  }
+
+  //console.log(maxI, " ", mse);
+
+  return Math.abs(20*Math.log10(maxI) - 10*Math.log10(mse));
 }
 
 // get Mean Squared Error(MSE) of data
@@ -118,6 +137,5 @@ PsnrVisualizer.prototype.getMse = function(inputData){
     squaredMean = (inputData[i] - average) * (inputData[i] - average) // (Yi1 - Yi2)^2
     result += squaredMean; // add all numbers
   }
-
   return result;
 }
