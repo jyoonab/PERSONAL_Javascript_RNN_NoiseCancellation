@@ -77,7 +77,7 @@ async function pageStart()
     if(navigator.mediaDevices.getUserMedia)
     {
         if(outputDevice.options.length === 0 &&  inputDevice.options.length === 0 ) // Fetch Device Information and Apply Stream
-            navigator.mediaDevices.getUserMedia(constraints).then(saveDeviceInformation).catch(hardwareErrorHandler);
+            navigator.mediaDevices.getUserMedia(constraints).then(saveDeviceInformation).catch(errorHandler);
         else // Change Audio Source Only
             navigator.mediaDevices.getUserMedia(constraints).then(getUserMediaSuccess).catch(errorHandler);
     }
@@ -166,7 +166,7 @@ async function getUserMediaSuccess(stream)
 
     // As Default, Turn on self-test
     swapStreamForSelfTest();
-    //selfTestAudio.play();
+    selfTestAudio.play();
 
     // Initialize WebRTC
     if(webRtc === null)
@@ -271,9 +271,6 @@ function toggleWebRtc(command)
       //webRtc.peerConnect();
 
       isWebRtcActivated = toggleButton(webrtcToggle);
-      console.log("isWebRtcActivated", isWebRtcActivated, " ", command);
-
-
     }
 }
 
@@ -354,11 +351,6 @@ function errorHandler(error)
   console.log(error);
 }
 
-function hardwareErrorHandler(error)
-{
-  console.log(error);
-}
-
 // Button Select Event
 function setButton(buttonName) {
   switch (buttonName)
@@ -377,10 +369,7 @@ function setButton(buttonName) {
       break;
     case 'WebRtcToggle' :
       if(!isWebRtcActivated)
-      {
-        console.log("current webrtc status, ", webRtc);
         toggleWebRtc("START");
-      }
       else
         toggleWebRtc("STOP");
       break;

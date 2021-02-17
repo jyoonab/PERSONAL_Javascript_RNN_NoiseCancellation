@@ -79,7 +79,7 @@ const wss = new WebSocketServer({server: httpsServer});
 wss.on('connection', function(ws) {
     ws.on('message', function(message) {
         // Broadcast any received message to all clients
-        console.log('received: %s', message);
+        console.log('broadcasting: %s', message);
         wss.broadcast(message);
     });
 });
