@@ -62,7 +62,8 @@ outputDevice.onchange = changeRemoteVideoOutput;
 async function pageStart()
 {
     const audioSource = inputDevice.value;
-    const videoSource = videoDevice.value;
+    //const videoSource = videoDevice.value;
+    console.log(videoDevice.value);
 
     const hardwareInformation = await navigator.mediaDevices.enumerateDevices();
     //const audioOutputInformation = hardwareInformation.filter((device) => device.kind === "audiooutput");
@@ -70,16 +71,16 @@ async function pageStart()
     videoInputsInformation = hardwareInformation.filter((device) => device.kind === "videoinput");
 
     var constraints = {
-      video: videoInputsInformation.length != 0 ? { deviceId: audioSource ? {exact: audioSource} : undefined } : false,
+      video: true,
       audio: audioInputsInformation.length != 0 ? { deviceId: audioSource ? {exact: audioSource} : undefined } : false
     };
 
     if(navigator.mediaDevices.getUserMedia)
     {
-        if(outputDevice.options.length === 0 &&  inputDevice.options.length === 0 ) // Fetch Device Information and Apply Stream
-            navigator.mediaDevices.getUserMedia(constraints).then(saveDeviceInformation).catch(errorHandler);
-        else // Change Audio Source Only
-            navigator.mediaDevices.getUserMedia(constraints).then(getUserMediaSuccess).catch(errorHandler);
+      if(outputDevice.options.length === 0 &&  inputDevice.options.length === 0 ) // Fetch Device Information and Apply Stream
+          navigator.mediaDevices.getUserMedia(constraints).then(saveDeviceInformation).catch(errorHandler);
+      else // Change Audio Source Only
+          navigator.mediaDevices.getUserMedia(constraints).then(getUserMediaSuccess).catch(errorHandler);
     }
     else
     {
@@ -149,20 +150,14 @@ async function getUserMediaSuccess(stream)
     localVideo.autoplay = true;
 
     // Where RNNoise Starts
-    startTime = new Date();
-
     denoisedStream = await startRNNoise(stream);
 
     console.log(stream.getVideoTracks()[0]);
     if(stream.getVideoTracks()[0] !== undefined)
     {
-      console.log("applying video now");
+      console.log("applying video to denoised stream");
       denoisedStream.addTrack(originalStream.getVideoTracks()[0]);
     }
-
-    endTime = new Date();
-    elapsedTime = endTime - startTime;
-    console.log('elapsed time ', elapsedTime);
 
     // As Default, Turn on self-test
     swapStreamForSelfTest();
