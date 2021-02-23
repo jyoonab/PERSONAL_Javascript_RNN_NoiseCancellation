@@ -35,7 +35,8 @@ function WebRtc(inputStream){
 
   if(streamVideoTrack != undefined)
     videoSender = peerConnection.addTrack(streamVideoTrack, inputStream);
-  audioSender = peerConnection.addTrack(streamAudioTrack, inputStream);
+  if(streamAudioTrack != undefined)
+    audioSender = peerConnection.addTrack(streamAudioTrack, inputStream);
 
   peerConnection.onicecandidate = gotIceCandidate;
   peerConnection.ontrack = gotRemoteStream;
@@ -60,7 +61,7 @@ WebRtc.prototype.stop = function() {
 }
 
 WebRtc.prototype.applyStream = function(inputStream) {
-  //this.socketConnect();
+  console.log("audioSender ", audioSender);
   if(audioSender != undefined)  // Check If Stream Exists; if yes, replace old track with new track
     audioSender.replaceTrack(inputStream.getAudioTracks()[0]);
 }
@@ -131,6 +132,7 @@ function createdDescription(description)
 
 function gotRemoteStream(event)
 {
+    console.log("remote video ", event.streams[0].getAudioTracks()[0]);
     remoteVideo.srcObject = event.streams[0];
 }
 
@@ -146,7 +148,8 @@ function resetPeerConnect()
 
     if(streamVideoTrack != undefined)
       videoSender = peerConnection.addTrack(streamVideoTrack, localStream);
-    audioSender = peerConnection.addTrack(streamAudioTrack, localStream);
+    if(streamAudioTrack != undefined)
+      audioSender = peerConnection.addTrack(streamAudioTrack, localStream);
 
     peerConnection.onicecandidate = gotIceCandidate;
     peerConnection.ontrack = gotRemoteStream;

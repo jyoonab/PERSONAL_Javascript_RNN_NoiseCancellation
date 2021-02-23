@@ -65,6 +65,9 @@ const handleRequest = function(request, response) {
     } else if(request.url === '/psnrVisualizer.js') {
         response.writeHead(200, {'Content-Type': 'application/javascript'});
         response.end(fs.readFileSync('client/psnrVisualizer.js'));
+    } else if(request.url === '/favicon.ico') {
+        response.writeHead(200, {'Content-Type': 'image/png'});
+        response.end(fs.readFileSync('src/webrtc.png'));
     }
 };
 

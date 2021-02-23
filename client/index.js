@@ -6,6 +6,7 @@ var isEchoActivated = false;
 var isRNNoiseActivated = false;
 var isWebRtcActivated = false;
 var selfTestAudio = null; // Audio for Self Test
+var doesDeviceExists = true;
 var denoisedStream; // Denoised Stream
 var originalStream; // Original Stream
 var processedStream; // Stream to be applied
@@ -56,14 +57,30 @@ inputDevice.onchange = pageStart;
 outputDevice.onchange = changeRemoteVideoOutput;
 
 /*********************************
+* Dummy Tracks
+*********************************/
+let dummyAudio = () => {
+  let ctx = new AudioContext(), oscillator = ctx.createOscillator();
+  let dst = oscillator.connect(ctx.createMediaStreamDestination());
+  oscillator.start();
+  return Object.assign(dst.stream.getAudioTracks()[0], {enabled: false});
+}
+
+let dummyVideo = ({width = '640', height = 480} = {}) => {
+  let canvas = Object.assign(document.createElement("canvas"), {width, height});
+  canvas.getContext('2d').fillRect(0, 0, width, height);
+  let dummyStream = canvas.captureStream();
+  return Object.assign(dummyStream.getVideoTracks()[0], {enabled: false});
+}
+
+/*********************************
 * Body Starts Here
 *********************************/
 // Enable Video and Be ready to connect
 async function pageStart()
 {
     const audioSource = inputDevice.value;
-    //const videoSource = videoDevice.value;
-    console.log(videoDevice.value);
+    const videoSource = videoDevice.value;
 
     const hardwareInformation = await navigator.mediaDevices.enumerateDevices();
     //const audioOutputInformation = hardwareInformation.filter((device) => device.kind === "audiooutput");
@@ -71,13 +88,17 @@ async function pageStart()
     videoInputsInformation = hardwareInformation.filter((device) => device.kind === "videoinput");
 
     var constraints = {
-      video: true,
+      video: videoInputsInformation.length != 0 ? { deviceId: audioSource ? {exact: videoSource} : undefined } : false,
       audio: audioInputsInformation.length != 0 ? { deviceId: audioSource ? {exact: audioSource} : undefined } : false
     };
 
+    console.log("constraints ", constraints.video, " ", constraints.audio);
+
     if(navigator.mediaDevices.getUserMedia)
     {
-      if(outputDevice.options.length === 0 &&  inputDevice.options.length === 0 ) // Fetch Device Information and Apply Stream
+      if(constraints.video === false, constraints.audio === false)
+          saveDeviceInformation(null);
+      else if(outputDevice.options.length === 0 &&  inputDevice.options.length === 0 ) // Fetch Device Information and Apply Stream
           navigator.mediaDevices.getUserMedia(constraints).then(saveDeviceInformation).catch(errorHandler);
       else // Change Audio Source Only
           navigator.mediaDevices.getUserMedia(constraints).then(getUserMediaSuccess).catch(errorHandler);
@@ -144,24 +165,43 @@ async function getUserMediaSuccess(stream)
 {
     var startTime, endTime, elapsedTime;
 
-    originalStream = stream;
-    processedStream = stream.clone();
-    localVideo.srcObject = stream;
-    localVideo.autoplay = true;
+    let dummyTracks = (...args) => new MediaStream([dummyVideo(...args), dummyAudio()]);
 
-    // Where RNNoise Starts
-    denoisedStream = await startRNNoise(stream);
+    remoteVideo.srcObject = dummyTracks();
 
-    console.log(stream.getVideoTracks()[0]);
-    if(stream.getVideoTracks()[0] !== undefined)
+    // if none of mic or video is found, make all streams empty
+    if(stream === null)
     {
-      console.log("applying video to denoised stream");
-      denoisedStream.addTrack(originalStream.getVideoTracks()[0]);
+      doesDeviceExists = false;
+
+      stream = new MediaStream();
+      stream.addTrack(dummyTracks().getVideoTracks()[0]);
+      stream.addTrack(dummyTracks().getAudioTracks()[0]);
     }
 
+    console.log(remoteVideo.srcObject.getVideoTracks()[0]);
+    console.log(remoteVideo.srcObject.getAudioTracks()[0]);
+
+    originalStream = stream;
+    if(originalStream.getVideoTracks()[0] === undefined)
+      originalStream.addTrack(dummyTracks().getVideoTracks()[0]); // add dummy video
+    if(originalStream.getAudioTracks()[0] === undefined)
+      originalStream.addTrack(dummyTracks().getAudioTracks()[0]); // add dummy audio
+
+    denoisedStream = await startRNNoise(stream); // Where RNNoise Starts
+    denoisedStream.addTrack(originalStream.getVideoTracks()[0]); // add dummy video
+
+
+    localVideo.srcObject = originalStream;
+    localVideo.autoplay = true;
+
     // As Default, Turn on self-test
-    swapStreamForSelfTest();
-    selfTestAudio.play();
+    if(doesDeviceExists)
+    {
+      processedStream = originalStream.clone();
+      swapStreamForSelfTest();
+      selfTestAudio.play();
+    }
 
     // Initialize WebRTC
     if(webRtc === null)
@@ -180,18 +220,21 @@ async function getUserMediaSuccess(stream)
       webRtc.applyStream(originalStream);
     }
 
-    // start stream visualizer(WebRtc)
-    streamVisualizerWebRtc = new StreamVisualizer(denoisedStream, localVoiceCanvas);
-    streamVisualizerWebRtc.start();
+    // Activate StreamVisualizer only when Audio Stream Exists
+    if(originalStream.getAudioTracks()[0] != undefined)
+    {
+      // start stream visualizer(WebRtc)
+      streamVisualizerWebRtc = new StreamVisualizer(denoisedStream, localVoiceCanvas);
+      streamVisualizerWebRtc.start();
 
-    // start stream visualizer(Voice Record)
-    streamVisualizerVoiceRecord = new StreamVisualizer(originalStream, remoteVoiceCanvas);
-    streamVisualizerVoiceRecord.start();
+      // start stream visualizer(Voice Record)
+      streamVisualizerVoiceRecord = new StreamVisualizer(originalStream, remoteVoiceCanvas);
+      streamVisualizerVoiceRecord.start();
 
-    // psnr canvas
-    console.log('demochart: ', demoChart);
-    streamVisualizerPsnr = new PsnrVisualizer(originalStream, denoisedStream, demoChart);
-    streamVisualizerPsnr.start();
+      // psnr canvas
+      streamVisualizerPsnr = new PsnrVisualizer(originalStream, denoisedStream, demoChart);
+      streamVisualizerPsnr.start();
+    }
 }
 
 // swap b/w denoised & original stream for self test
@@ -238,18 +281,20 @@ function toggleButton(item)
   }
 }
 
-function toggleWebRtc(command)
+async function toggleWebRtc(command)
 {
     if(command === "START" || command === "AUTOSTART")
     {
-      console.log("START");
+      console.log(command);
 
       webRtc.peerConnect();
 
-      if(command === "START")  // only start webrtc on START command
+      if(command === "START")
         webRtc.start();
 
-      selfTestAudio.pause();
+      if(doesDeviceExists)
+        selfTestAudio.pause();
+
       if(isRNNoiseActivated)
           webRtc.applyStream(denoisedStream);
       else
