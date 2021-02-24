@@ -55,7 +55,7 @@ li {
 }
 
 /***********************************************
-* Sample Sound Test - Sample Sound Button Style *
+* Button Change Style *
 ************************************************/
 .buttonDiv p {
   font-size: 18px;
@@ -77,8 +77,9 @@ li {
 }
 
 
-/*Temp*/
-
+/***********************************************
+*Psnr Graph
+************************************************/
 #chart_container {
   position: relative;
   border-top: 10px solid;

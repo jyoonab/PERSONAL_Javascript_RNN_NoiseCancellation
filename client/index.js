@@ -66,7 +66,7 @@ let dummyAudio = () => {
   return Object.assign(dst.stream.getAudioTracks()[0], {enabled: false});
 }
 
-let dummyVideo = ({width = '640', height = 480} = {}) => {
+let dummyVideo = ({width = 640, height = 480} = {}) => {
   let canvas = Object.assign(document.createElement("canvas"), {width, height});
   canvas.getContext('2d').fillRect(0, 0, width, height);
   let dummyStream = canvas.captureStream();
@@ -122,7 +122,7 @@ async function saveDeviceInformation(stream)
     (device, i) => outputDevice.append(new Option( device.label || `device ${i}`, device.deviceId ))
   );
 
-  // Saves Input Devices Information on Select Form
+  // Saves Input Device Information on Select Form
   audioInputs.forEach(
     (device, i) => inputDevice.append(new Option( device.label || `device ${i}`, device.deviceId ))
   );
@@ -130,6 +130,9 @@ async function saveDeviceInformation(stream)
   videoInputs.forEach(
     (device, i) => videoDevice.append(new Option( device.label || `device ${i}`, device.deviceId ))
   );
+
+  //console.log("Height ", localVideo.getBoundingClientRect().height);
+  //console.log("Width ", localVideo.getBoundingClientRect().width);
 
   getUserMediaSuccess(stream);
 }
@@ -178,9 +181,6 @@ async function getUserMediaSuccess(stream)
       stream.addTrack(dummyTracks().getVideoTracks()[0]);
       stream.addTrack(dummyTracks().getAudioTracks()[0]);
     }
-
-    console.log(remoteVideo.srcObject.getVideoTracks()[0]);
-    console.log(remoteVideo.srcObject.getAudioTracks()[0]);
 
     originalStream = stream;
     if(originalStream.getVideoTracks()[0] === undefined)
@@ -306,9 +306,8 @@ async function toggleWebRtc(command)
     {
       console.log("STOP");
       webRtc.stop();
-      selfTestAudio.play();
-
-      //webRtc.peerConnect();
+      if(doesDeviceExists)
+        selfTestAudio.play();
 
       isWebRtcActivated = toggleButton(webrtcToggle);
     }

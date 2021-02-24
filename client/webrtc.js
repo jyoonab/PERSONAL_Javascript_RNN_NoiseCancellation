@@ -134,6 +134,7 @@ function gotRemoteStream(event)
 {
     console.log("remote video ", event.streams[0].getAudioTracks()[0]);
     remoteVideo.srcObject = event.streams[0];
+    console.log("remote ", remoteVideo);
 }
 
 // restart peerconnection
