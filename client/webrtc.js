@@ -47,6 +47,7 @@ WebRtc.prototype.socketConnect = function() {
   serverConnection.onmessage = gotMessageFromServer;
 }
 
+// if peer connection is closed, make peer connection
 WebRtc.prototype.peerConnect = function() {
   resetPeerConnect();
 }
@@ -61,7 +62,6 @@ WebRtc.prototype.stop = function() {
 }
 
 WebRtc.prototype.applyStream = function(inputStream) {
-  console.log("audioSender ", audioSender);
   if(audioSender != undefined)  // Check If Stream Exists; if yes, replace old track with new track
     audioSender.replaceTrack(inputStream.getAudioTracks()[0]);
 }
@@ -133,6 +133,7 @@ function createdDescription(description)
 function gotRemoteStream(event)
 {
     console.log("remote video ", event.streams[0].getAudioTracks()[0]);
+    console.log("remote video ", event.streams[0].getVideoTracks()[0]);
     remoteVideo.srcObject = event.streams[0];
     console.log("remote ", remoteVideo);
 }

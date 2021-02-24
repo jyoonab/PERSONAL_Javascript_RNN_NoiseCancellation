@@ -5,11 +5,9 @@ var webRtc = null;
 var isEchoActivated = false;
 var isRNNoiseActivated = false;
 var isWebRtcActivated = false;
-var selfTestAudio = null; // Audio for Self Test
 var doesDeviceExists = true;
 var denoisedStream; // Denoised Stream
 var originalStream; // Original Stream
-var processedStream; // Stream to be applied
 var audioInputsInformation;
 var videoInputsInformation;
 
@@ -53,6 +51,7 @@ const rnnoiseSpeedMeter = document.getElementById('rnnoiseSpeedMeter');
 /*********************************
 * Initializing Inputs
 *********************************/
+//inputDevice.onchange = pageStart;
 inputDevice.onchange = pageStart;
 outputDevice.onchange = changeRemoteVideoOutput;
 
@@ -96,6 +95,7 @@ async function pageStart()
 
     if(navigator.mediaDevices.getUserMedia)
     {
+      await navigator.permissions.query({name: 'geolocation'});
       if(constraints.video === false, constraints.audio === false)
           saveDeviceInformation(null);
       else if(outputDevice.options.length === 0 &&  inputDevice.options.length === 0 ) // Fetch Device Information and Apply Stream
@@ -131,15 +131,14 @@ async function saveDeviceInformation(stream)
     (device, i) => videoDevice.append(new Option( device.label || `device ${i}`, device.deviceId ))
   );
 
-  //console.log("Height ", localVideo.getBoundingClientRect().height);
-  //console.log("Width ", localVideo.getBoundingClientRect().width);
-
   getUserMediaSuccess(stream);
 }
 
 // Change Audio Destination
 function changeRemoteVideoOutput() {
+  console.log("speaker changed", outputDevice.value);
   const audioDestination = outputDevice.value;
+  attachSinkId(localVideo, audioDestination);
   attachSinkId(remoteVideo, audioDestination);
 }
 
@@ -191,17 +190,11 @@ async function getUserMediaSuccess(stream)
     denoisedStream = await startRNNoise(stream); // Where RNNoise Starts
     denoisedStream.addTrack(originalStream.getVideoTracks()[0]); // add dummy video
 
-
-    localVideo.srcObject = originalStream;
+    if(!isRNNoiseActivated)
+      localVideo.srcObject = originalStream;
+    else if(isRNNoiseActivated)
+      localVideo.srcObject = denoisedStream;
     localVideo.autoplay = true;
-
-    // As Default, Turn on self-test
-    if(doesDeviceExists)
-    {
-      processedStream = originalStream.clone();
-      swapStreamForSelfTest();
-      selfTestAudio.play();
-    }
 
     // Initialize WebRTC
     if(webRtc === null)
@@ -232,32 +225,9 @@ async function getUserMediaSuccess(stream)
       streamVisualizerVoiceRecord.start();
 
       // psnr canvas
-      streamVisualizerPsnr = new PsnrVisualizer(originalStream, denoisedStream, demoChart);
-      streamVisualizerPsnr.start();
+      //streamVisualizerPsnr = new PsnrVisualizer(originalStream, denoisedStream, demoChart);
+      //streamVisualizerPsnr.start();
     }
-}
-
-// swap b/w denoised & original stream for self test
-function swapStreamForSelfTest()
-{
-  if (!isWebRtcActivated) {
-      if(selfTestAudio === null)
-      {
-        selfTestAudio = new Audio();
-      }
-      else if(!isRNNoiseActivated)
-      {
-          updateProcessedStream(denoisedStream);
-      }
-      else
-      {
-          updateProcessedStream(originalStream);
-      }
-      selfTestAudio.srcObject = processedStream;
-
-      //selfTestAudio.setSinkId(outputDevice.options[outputDevice.selectedIndex].value); // Somehow, this is not working on mobile chrome
-      //selfTestAudio.play();
-  }
 }
 
 // change button's status
@@ -287,13 +257,13 @@ async function toggleWebRtc(command)
     {
       console.log(command);
 
-      webRtc.peerConnect();
+      await webRtc.peerConnect();
 
       if(command === "START")
         webRtc.start();
 
       if(doesDeviceExists)
-        selfTestAudio.pause();
+        localVideo.muted = true;
 
       if(isRNNoiseActivated)
           webRtc.applyStream(denoisedStream);
@@ -307,7 +277,7 @@ async function toggleWebRtc(command)
       console.log("STOP");
       webRtc.stop();
       if(doesDeviceExists)
-        selfTestAudio.play();
+        localVideo.muted = false;
 
       isWebRtcActivated = toggleButton(webrtcToggle);
     }
@@ -320,9 +290,11 @@ function toggleRNNoise(command)
     console.log("rnnoise activated");
     if(isWebRtcActivated)
       webRtc.applyStream(denoisedStream);
-    swapStreamForSelfTest();
+
+    localVideo.srcObject = denoisedStream;
+
     if(!isWebRtcActivated)
-      selfTestAudio.play();
+      localVideo.muted = false;
 
     isRNNoiseActivated = toggleButton(rnnoiseToggle);
   }
@@ -331,30 +303,14 @@ function toggleRNNoise(command)
     console.log("rnnoise deactivated");
     if(isWebRtcActivated)
       webRtc.applyStream(originalStream);
-    swapStreamForSelfTest();
+
+    localVideo.srcObject = originalStream;
+
     if(!isWebRtcActivated)
-      selfTestAudio.play();
+      localVideo.muted = false;
 
     isRNNoiseActivated = toggleButton(rnnoiseToggle);
   }
-}
-
-// replace processedStream with sourceStream
-// For now, only sound is changed
-function updateProcessedStream(sourceStream)
-{
-  try
-  {
-    processedStream.removeTrack(processedStream.getAudioTracks()[0]);
-    processedStream.addTrack(sourceStream.getAudioTracks()[0]);
-    return true;
-  }
-  catch(e)
-  {
-    console.error(e);
-    return false;
-  }
-
 }
 
 async function startRNNoise(inputStream)
@@ -362,11 +318,6 @@ async function startRNNoise(inputStream)
     const sink = Audio.prototype.setSinkId;
     const context = new AudioContext({ sampleRate: 48000 });
     try {
-        /*const destination = sink ? new MediaStreamAudioDestinationNode(context, {
-            channelCountMode: "explicit",
-            channelCount: 1,
-            channelInterpretation: "speakers"
-        }) : context.destination;*/
         const destination = context.createMediaStreamDestination();
 
         await RNNoiseNode.register(context)
