@@ -5,11 +5,13 @@ var uuid;
 var localStream;
 var peerConnection;
 var serverConnection;
+var eventStream;
 
 var streamVideoTrack;
 var streamAudioTrack;
 var videoSender;
 var audioSender;
+
 
 
 // ICE Server Candidates
@@ -63,7 +65,10 @@ WebRtc.prototype.stop = function() {
 
 WebRtc.prototype.applyStream = function(inputStream) {
   if(audioSender != undefined)  // Check If Stream Exists; if yes, replace old track with new track
+  {
     audioSender.replaceTrack(inputStream.getAudioTracks()[0]);
+    remoteVideo.srcObject = eventStream;
+  }
 }
 
 function startCalling()
@@ -132,10 +137,8 @@ function createdDescription(description)
 
 function gotRemoteStream(event)
 {
-    console.log("remote video ", event.streams[0].getAudioTracks()[0]);
-    console.log("remote video ", event.streams[0].getVideoTracks()[0]);
-    remoteVideo.srcObject = event.streams[0];
-    console.log("remote ", remoteVideo);
+    eventStream = event.streams[0];
+    remoteVideo.srcObject = eventStream;
 }
 
 // restart peerconnection

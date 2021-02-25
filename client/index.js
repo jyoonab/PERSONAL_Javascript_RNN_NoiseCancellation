@@ -53,7 +53,7 @@ const rnnoiseSpeedMeter = document.getElementById('rnnoiseSpeedMeter');
 *********************************/
 //inputDevice.onchange = pageStart;
 inputDevice.onchange = pageStart;
-outputDevice.onchange = changeRemoteVideoOutput;
+outputDevice.onchange = handleAudioOutputChange;
 
 /*********************************
 * Dummy Tracks
@@ -87,7 +87,7 @@ async function pageStart()
     videoInputsInformation = hardwareInformation.filter((device) => device.kind === "videoinput");
 
     var constraints = {
-      video: videoInputsInformation.length != 0 ? { deviceId: audioSource ? {exact: videoSource} : undefined } : false,
+      video: videoInputsInformation.length != 0 ? { deviceId: videoSource ? {exact: videoSource} : undefined } : false,
       audio: audioInputsInformation.length != 0 ? { deviceId: audioSource ? {exact: audioSource} : undefined } : false
     };
 
@@ -135,7 +135,7 @@ async function saveDeviceInformation(stream)
 }
 
 // Change Audio Destination
-function changeRemoteVideoOutput() {
+function handleAudioOutputChange() {
   console.log("speaker changed", outputDevice.value);
   const audioDestination = outputDevice.value;
   attachSinkId(localVideo, audioDestination);
@@ -194,7 +194,7 @@ async function getUserMediaSuccess(stream)
       localVideo.srcObject = originalStream;
     else if(isRNNoiseActivated)
       localVideo.srcObject = denoisedStream;
-    localVideo.autoplay = true;
+    //localVideo.autoplay = true;
 
     // Initialize WebRTC
     if(webRtc === null)
