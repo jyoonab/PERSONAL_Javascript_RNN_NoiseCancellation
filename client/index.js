@@ -51,9 +51,10 @@ const rnnoiseSpeedMeter = document.getElementById('rnnoiseSpeedMeter');
 /*********************************
 * Initializing Inputs
 *********************************/
-//inputDevice.onchange = pageStart;
 inputDevice.onchange = pageStart;
+videoDevice.onchange = pageStart;
 outputDevice.onchange = handleAudioOutputChange;
+
 
 /*********************************
 * Dummy Tracks
@@ -80,9 +81,8 @@ async function pageStart()
 {
     const audioSource = inputDevice.value;
     const videoSource = videoDevice.value;
-
     const hardwareInformation = await navigator.mediaDevices.enumerateDevices();
-    //const audioOutputInformation = hardwareInformation.filter((device) => device.kind === "audiooutput");
+
     audioInputsInformation = hardwareInformation.filter((device) => device.kind === "audioinput");
     videoInputsInformation = hardwareInformation.filter((device) => device.kind === "videoinput");
 
@@ -95,7 +95,6 @@ async function pageStart()
 
     if(navigator.mediaDevices.getUserMedia)
     {
-      await navigator.permissions.query({name: 'geolocation'});
       if(constraints.video === false, constraints.audio === false)
           saveDeviceInformation(null);
       else if(outputDevice.options.length === 0 &&  inputDevice.options.length === 0 ) // Fetch Device Information and Apply Stream
@@ -194,7 +193,6 @@ async function getUserMediaSuccess(stream)
       localVideo.srcObject = originalStream;
     else if(isRNNoiseActivated)
       localVideo.srcObject = denoisedStream;
-    //localVideo.autoplay = true;
 
     // Initialize WebRTC
     if(webRtc === null)
@@ -225,8 +223,8 @@ async function getUserMediaSuccess(stream)
       streamVisualizerVoiceRecord.start();
 
       // psnr canvas
-      //streamVisualizerPsnr = new PsnrVisualizer(originalStream, denoisedStream, demoChart);
-      //streamVisualizerPsnr.start();
+      streamVisualizerPsnr = new PsnrVisualizer(originalStream, denoisedStream, demoChart);
+      streamVisualizerPsnr.start();
     }
 }
 
@@ -253,10 +251,9 @@ function toggleButton(item)
 
 async function toggleWebRtc(command)
 {
+    console.log(command);
     if(command === "START" || command === "AUTOSTART")
     {
-      console.log(command);
-
       await webRtc.peerConnect();
 
       if(command === "START")
@@ -269,8 +266,8 @@ async function toggleWebRtc(command)
           webRtc.applyStream(denoisedStream);
       else
           webRtc.applyStream(originalStream);
+
       isWebRtcActivated = toggleButton(webrtcToggle);
-      console.log("isWebRtcActivated", isWebRtcActivated, " ", command);
     }
     if(command === "STOP")
     {

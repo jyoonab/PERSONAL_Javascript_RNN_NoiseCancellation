@@ -8,32 +8,38 @@ var startTime = null;
 var endTime = null;
 var elapsedTime = 0;
 
-function PsnrVisualizer(originalStream, denoisedStream, demoChart) {
-  chartBody = new Rickshaw.Graph({
-      element: demoChart,
-      width: "300",
-      height: "150",
-      renderer: "line",
-      min: "0",
-      max: "100",
-      series: new Rickshaw.Series.FixedDuration([{
-          name: 'one',
-          color: '#446CB3'
-      }], undefined, {
-          timeInterval: updateInterval,
-          maxDataPoints: 100
-      })
-  });
+function PsnrVisualizer(originalStream, denoisedStream, psnrChart) {
+  if(chartBody === undefined)
+  {
+    chartBody = new Rickshaw.Graph({
+        element: psnrChart,
+        width: "300",
+        height: "150",
+        renderer: "line",
+        min: "0",
+        max: "100",
+        series: new Rickshaw.Series.FixedDuration([{
+            name: 'one',
+            color: '#446CB3'
+        }], undefined, {
+            timeInterval: updateInterval,
+            maxDataPoints: 100
+        })
+    });
+  }
 
-  yAxis = new Rickshaw.Graph.Axis.Y({
-      graph: chartBody,
-      orientation: 'left',
-      tickFormat: function (y) {
-          return y.toFixed(0);
-      },
-      ticks: 5,
-      element: document.getElementById('y_axis'),
-  });
+  if(yAxis === undefined)
+  {
+    yAxis = new Rickshaw.Graph.Axis.Y({
+        graph: chartBody,
+        orientation: 'left',
+        tickFormat: function (y) {
+            return y.toFixed(0);
+        },
+        ticks: 5,
+        element: document.getElementById('y_axis'),
+    });
+  }
 
   // cope with browser differences
   if (typeof AudioContext === 'function') {

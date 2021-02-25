@@ -138,6 +138,7 @@ function createdDescription(description)
 function gotRemoteStream(event)
 {
     eventStream = event.streams[0];
+    //remoteVideo.srcObject = eventStream;
     remoteVideo.srcObject = eventStream;
 }
 
