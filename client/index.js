@@ -23,7 +23,7 @@ var peerConnectionConfig = {
 Initializing Elements
 *********************************/
 
-// temp
+// PSNR Chart
 var demoChart = document.querySelector("#demo_chart");
 
 // Select (Where I/O Device Information is Saved)
@@ -44,6 +44,13 @@ const psnrCanvas = document.getElementById('psnrCanvas');
 const echoToggle = document.getElementById('echoToggle');
 const rnnoiseToggle = document.getElementById('rnnoiseToggle');
 const webrtcToggle = document.getElementById('webrtcToggle');
+
+// Hidden Button
+// Visible only when no mic or no camera found & Stream Starts Passively(means the stream is started by another user)
+/* NOTE : The Browser Blocks Video Play if Auauthorized Video is tried to be played automatically.
+Therefore, this button is workaround so user can play stream after clicking it*/
+const hiddenButton = document.getElementById('hiddenButton');
+hiddenButton.onclick = function(){ remoteVideo.play() };
 
 // Pragraph
 const rnnoiseSpeedMeter = document.getElementById('rnnoiseSpeedMeter');
@@ -93,19 +100,12 @@ async function pageStart()
 
     console.log("constraints ", constraints.video, " ", constraints.audio);
 
-    if(navigator.mediaDevices.getUserMedia)
-    {
-      if(constraints.video === false, constraints.audio === false)
-          saveDeviceInformation(null);
-      else if(outputDevice.options.length === 0 &&  inputDevice.options.length === 0 ) // Fetch Device Information and Apply Stream
-          navigator.mediaDevices.getUserMedia(constraints).then(saveDeviceInformation).catch(errorHandler);
-      else // Change Audio Source Only
-          navigator.mediaDevices.getUserMedia(constraints).then(getUserMediaSuccess).catch(errorHandler);
-    }
-    else
-    {
-        alert('Your browser does not support getUserMedia API');
-    }
+    if(constraints.video === false, constraints.audio === false)
+        saveDeviceInformation(null);
+    else if(outputDevice.options.length === 0 &&  inputDevice.options.length === 0 ) // Fetch Device Information and Apply Stream
+        navigator.mediaDevices.getUserMedia(constraints).then(saveDeviceInformation).catch(errorHandler);
+    else // Change Audio Source Only
+        navigator.mediaDevices.getUserMedia(constraints).then(getUserMediaSuccess).catch(errorHandler);
 }
 
 // Put Device Information into selection
@@ -262,6 +262,9 @@ async function toggleWebRtc(command)
       if(doesDeviceExists)
         localVideo.muted = true;
 
+      if(command == "AUTOSTART" && !doesDeviceExists)
+        hiddenButton.style.display = "inline";
+
       if(isRNNoiseActivated)
           webRtc.applyStream(denoisedStream);
       else
@@ -295,7 +298,7 @@ function toggleRNNoise(command)
 
     isRNNoiseActivated = toggleButton(rnnoiseToggle);
   }
-  else
+  if(command === "STOP")
   {
     console.log("rnnoise deactivated");
     if(isWebRtcActivated)

@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
     <head>
+      <meta charset="UTF-8">
+
       <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
 
@@ -45,6 +47,9 @@
 
         <!-- Test Region Starts Here -->
         <div class="webRtcTestDiv">
+            <!-- The Browser Blocks Video Play if Auauthorized Video is tried to be played automatically.
+            Therefore, this button is workaround so user can play stream after clicking it -->
+            <button id="hiddenButton">Please Click Here to Start WebRTC!</button>
             <div class="videoDiv">
               <video id="localVideo" playsinline autoplay></video>
               <video id="remoteVideo" playsinline autoplay></video>

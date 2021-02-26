@@ -67,8 +67,13 @@ WebRtc.prototype.applyStream = function(inputStream) {
   if(audioSender != undefined)  // Check If Stream Exists; if yes, replace old track with new track
   {
     audioSender.replaceTrack(inputStream.getAudioTracks()[0]);
-    remoteVideo.srcObject = eventStream;
   }
+  if(videoSender != undefined)  // Check If Stream Exists; if yes, replace old track with new track
+  {
+    videoSender.replaceTrack(inputStream.getVideoTracks()[0]);
+  }
+
+  remoteVideo.srcObject = eventStream;
 }
 
 function startCalling()
@@ -137,6 +142,7 @@ function createdDescription(description)
 
 function gotRemoteStream(event)
 {
+    remoteVideo.pause();
     eventStream = event.streams[0];
     //remoteVideo.srcObject = eventStream;
     remoteVideo.srcObject = eventStream;

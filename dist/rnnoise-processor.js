@@ -17,7 +17,7 @@
     }
     process(a,c,e)
     {
-      if(this.alive){
+      if(this.alive && a[0].length != 0){
         return d.set(a[0][0], b.getInput(this.state)/4), a=c[0][0],(c=b.pipe(this.state,a.length)/4)&&a.set(d.subarray(c,c+a.length)),!0
       }
     }
