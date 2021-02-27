@@ -1,30 +1,22 @@
-var streamVisualizerWebRtc;
-var streamVisualizerVoiceRecord;
-var streamVisualizerPsnr;
-var webRtc = null;
-var isEchoActivated = false;
-var isRNNoiseActivated = false;
-var isWebRtcActivated = false;
-var doesDeviceExists = true;
-var denoisedStream; // Denoised Stream
-var originalStream; // Original Stream
-var audioInputsInformation;
-var videoInputsInformation;
-
-var peerConnectionConfig = {
-    'iceServers':
-    [
-        {'urls': 'stun:stun.stunprotocol.org:3478'},
-        {'urls': 'stun:stun.l.google.com:19302'},
-    ]
-};
+let streamVisualizerWebRtc;
+let streamVisualizerVoiceRecord;
+let streamVisualizerPsnr;
+let webRtc = null;
+let isEchoActivated = false;
+let isRNNoiseActivated = false;
+let isWebRtcActivated = false;
+let doesDeviceExist = true;
+let denoisedStream; // Denoised Stream
+let originalStream; // Original Stream
+let audioInputsInformation;
+let videoInputsInformation;
 
 /*********************************
 Initializing Elements
 *********************************/
 
 // PSNR Chart
-var demoChart = document.querySelector("#demo_chart");
+const demoChart = document.querySelector("#demo_chart");
 
 // Select (Where I/O Device Information is Saved)
 const inputDevice = document.getElementById('inputDevice');
@@ -47,12 +39,12 @@ const webrtcToggle = document.getElementById('webrtcToggle');
 
 // Hidden Button
 // Visible only when no mic or no camera found & Stream Starts Passively(means the stream is started by another user)
-/* NOTE : The Browser Blocks Video Play if Auauthorized Video is tried to be played automatically.
-Therefore, this button is workaround so user can play stream after clicking it*/
+/* NOTE : The Browser Blocks Video Play if Unauthorized Video is tried to be played automatically.
+This button is workaround so user can play stream after clicking it*/
 const hiddenButton = document.getElementById('hiddenButton');
 hiddenButton.onclick = function(){ remoteVideo.play() };
 
-// Pragraph
+// Pragraph - Rnnoise Speed Meter
 const rnnoiseSpeedMeter = document.getElementById('rnnoiseSpeedMeter');
 
 /*********************************
@@ -64,7 +56,8 @@ outputDevice.onchange = handleAudioOutputChange;
 
 
 /*********************************
-* Dummy Tracks
+* - Dummy Tracks -
+* This is to prevent exceptions caused by empty Audio or Video
 *********************************/
 let dummyAudio = () => {
   let ctx = new AudioContext(), oscillator = ctx.createOscillator();
@@ -83,7 +76,7 @@ let dummyVideo = ({width = 640, height = 480} = {}) => {
 /*********************************
 * Body Starts Here
 *********************************/
-// Enable Video and Be ready to connect
+// Enable Video and Be Ready to Connect
 async function pageStart()
 {
     const audioSource = inputDevice.value;
@@ -93,39 +86,38 @@ async function pageStart()
     audioInputsInformation = hardwareInformation.filter((device) => device.kind === "audioinput");
     videoInputsInformation = hardwareInformation.filter((device) => device.kind === "videoinput");
 
-    var constraints = {
+    let constraints = {
       video: videoInputsInformation.length != 0 ? { deviceId: videoSource ? {exact: videoSource} : undefined } : false,
       audio: audioInputsInformation.length != 0 ? { deviceId: audioSource ? {exact: audioSource} : undefined } : false
     };
 
-    console.log("constraints ", constraints.video, " ", constraints.audio);
-
-    if(constraints.video === false, constraints.audio === false)
-        saveDeviceInformation(null);
-    else if(outputDevice.options.length === 0 &&  inputDevice.options.length === 0 ) // Fetch Device Information and Apply Stream
-        navigator.mediaDevices.getUserMedia(constraints).then(saveDeviceInformation).catch(errorHandler);
-    else // Change Audio Source Only
+    if(constraints.video === false, constraints.audio === false) // If any device not found, just start saveDeviceInformationToSelectForm() with null
+        saveDeviceInformationToSelectForm(null);
+    else if(outputDevice.options.length === 0 &&  inputDevice.options.length === 0 ) // If audio or video found and this is first initializing state
+        navigator.mediaDevices.getUserMedia(constraints).then(saveDeviceInformationToSelectForm).catch(errorHandler);
+    else // If Audio or Video is Change
         navigator.mediaDevices.getUserMedia(constraints).then(getUserMediaSuccess).catch(errorHandler);
 }
 
-// Put Device Information into selection
-async function saveDeviceInformation(stream)
+// Put Device Information into Select Form
+async function saveDeviceInformationToSelectForm(stream)
 {
   const devices = await navigator.mediaDevices.enumerateDevices();
   const audioOutputs = devices.filter((device) => device.kind === "audiooutput");
   const audioInputs = devices.filter((device) => device.kind === "audioinput");
   const videoInputs = devices.filter((device) => device.kind === "videoinput");
 
-  // Saves Output Devices Information on Select Form
+  // Save Output Devices Information on Select Form
   audioOutputs.forEach(
     (device, i) => outputDevice.append(new Option( device.label || `device ${i}`, device.deviceId ))
   );
 
-  // Saves Input Device Information on Select Form
+  // Save Input Device Information on Select Form
   audioInputs.forEach(
     (device, i) => inputDevice.append(new Option( device.label || `device ${i}`, device.deviceId ))
   );
 
+  // Save Video Device Information on Select Form
   videoInputs.forEach(
     (device, i) => videoDevice.append(new Option( device.label || `device ${i}`, device.deviceId ))
   );
@@ -133,47 +125,17 @@ async function saveDeviceInformation(stream)
   getUserMediaSuccess(stream);
 }
 
-// Change Audio Destination
-function handleAudioOutputChange() {
-  console.log("speaker changed", outputDevice.value);
-  const audioDestination = outputDevice.value;
-  attachSinkId(localVideo, audioDestination);
-  attachSinkId(remoteVideo, audioDestination);
-}
-
-// Change Audio Sink Id
-function attachSinkId(element, sinkId) {
-  if (typeof element.sinkId !== 'undefined') {
-    element.setSinkId(sinkId)
-        .then(() => {
-          console.log(`Success, audio output device attached: ${sinkId}`);
-        })
-        .catch(error => {
-          let errorMessage = error;
-          if (error.name === 'SecurityError') {
-            errorMessage = `You need to use HTTPS for selecting audio output device: ${error}`;
-          }
-          console.error(errorMessage);
-          // Jump back to first output device in the list as it's the default.
-          outputDevice.selectedIndex = 0;
-        });
-  } else {
-    console.warn('Browser does not support output device selection.');
-  }
-}
-
+// Start Initializing Everything(including RNNoise, WebRTC.. etc)
 async function getUserMediaSuccess(stream)
 {
-    var startTime, endTime, elapsedTime;
-
-    let dummyTracks = (...args) => new MediaStream([dummyVideo(...args), dummyAudio()]);
+    let dummyTracks = (...args) => new MediaStream([dummyVideo(...args), dummyAudio()]); // Make a dummy tracks so we can replace this with empty tracks.
 
     remoteVideo.srcObject = dummyTracks();
 
     // if none of mic or video is found, make all streams empty
     if(stream === null)
     {
-      doesDeviceExists = false;
+      doesDeviceExist = false;
 
       stream = new MediaStream();
       stream.addTrack(dummyTracks().getVideoTracks()[0]);
@@ -181,35 +143,26 @@ async function getUserMediaSuccess(stream)
     }
 
     originalStream = stream;
-    if(originalStream.getVideoTracks()[0] === undefined)
-      originalStream.addTrack(dummyTracks().getVideoTracks()[0]); // add dummy video
-    if(originalStream.getAudioTracks()[0] === undefined)
-      originalStream.addTrack(dummyTracks().getAudioTracks()[0]); // add dummy audio
+    if(originalStream.getVideoTracks()[0] === undefined) // if no video, add dummy video
+      originalStream.addTrack(dummyTracks().getVideoTracks()[0]);
+    if(originalStream.getAudioTracks()[0] === undefined) // if no audio, add dummy audio
+      originalStream.addTrack(dummyTracks().getAudioTracks()[0]);
 
     denoisedStream = await startRNNoise(stream); // Where RNNoise Starts
-    denoisedStream.addTrack(originalStream.getVideoTracks()[0]); // add dummy video
+    denoisedStream.addTrack(originalStream.getVideoTracks()[0]); // add dummy video to denoised stream
 
-    if(!isRNNoiseActivated)
+    if(!isRNNoiseActivated) // If rnnoise is off, apply original stream
       localVideo.srcObject = originalStream;
-    else if(isRNNoiseActivated)
+    else if(isRNNoiseActivated) // If rnnoise is on, apply denoised stream
       localVideo.srcObject = denoisedStream;
 
     // Initialize WebRTC
-    if(webRtc === null)
-    {
-      console.log("making new WebRtc");
+    if(webRtc === null) // If this is the first time to initialize WebRTC, newly make one
       webRtc = new WebRtc(originalStream);
-    }
-    else if(isWebRtcActivated && isRNNoiseActivated)
-    {
-      console.log("applying denoised stream");
+    else if(isWebRtcActivated && isRNNoiseActivated) // If WebRTC is already initialized and RNNoise is activated, just apply denoised stream on WebRTC
       webRtc.applyStream(denoisedStream);
-    }
-    else if(isWebRtcActivated && !isRNNoiseActivated)
-    {
-      console.log("applying original stream");
+    else if(isWebRtcActivated && !isRNNoiseActivated) // If WebRTC is already initialized and RNNoise is not activated, just apply original stream on WebRTC
       webRtc.applyStream(originalStream);
-    }
 
     // Activate StreamVisualizer only when Audio Stream Exists
     if(originalStream.getAudioTracks()[0] != undefined)
@@ -228,6 +181,32 @@ async function getUserMediaSuccess(stream)
     }
 }
 
+// Change Audio Destination
+function handleAudioOutputChange()
+{
+  const audioDestination = outputDevice.value;
+  attachSinkId(localVideo, audioDestination);
+  attachSinkId(remoteVideo, audioDestination);
+}
+
+// Change Audio Sink Id
+function attachSinkId(element, sinkId)
+{
+  if (typeof element.sinkId !== 'undefined') // Start Replacement only when element's sink id exists
+  {
+    element.setSinkId(sinkId) // Replacement Starts Here
+        .then(() => {
+          console.log(`Success, audio output device attached: ${sinkId}`);
+        })
+        .catch(error => {
+          console.error(error);
+          outputDevice.selectedIndex = 0; // Jump back to first output device in the list as it's the default.
+        });
+  } else {
+    console.warn('Browser does not support output device selection.');
+  }
+}
+
 // change button's status
 // return true if the button is being on
 // return false if the button is being off
@@ -235,87 +214,93 @@ function toggleButton(item)
 {
   if(!item.classList.contains("selected"))
   {
-    console.log("turning on");
     item.innerHTML = item.innerHTML.replace("Off", "On");
     item.classList.add("selected");
     return true;
   }
   else
   {
-    console.log("turning off");
     item.innerHTML = item.innerHTML.replace("On", "Off");
     item.classList.remove("selected");
     return false;
   }
 }
 
+// Turn On & Off WebRtc
+// COMMAND can be :
+// - START (means the user has activated webRtc)
+// - AUTOSTART (means the user from opposite side has activated webRtc)
+// - STOP (webRtc has been stopped)
 async function toggleWebRtc(command)
 {
-    console.log(command);
     if(command === "START" || command === "AUTOSTART")
     {
-      await webRtc.peerConnect();
+      await webRtc.peerConnect(); // make PeerConnection
 
-      if(command === "START")
+      if(command === "START") // make call newly only when "START" (Another call should not be made on "AUTOSTART" b/c calling is already made)
         webRtc.start();
 
-      if(doesDeviceExists)
+      if(doesDeviceExist) // If Device Exists, Turn Off Self-Audio
         localVideo.muted = true;
 
-      if(command == "AUTOSTART" && !doesDeviceExists)
+      if(command == "AUTOSTART" && !doesDeviceExist) // Enable Hidden Button
         hiddenButton.style.display = "inline";
 
-      if(isRNNoiseActivated)
+      if(isRNNoiseActivated) // If RNNoise is Enabled, apply Denoised Stream
           webRtc.applyStream(denoisedStream);
-      else
+      else // If RNNoise is Disabled, apply Original Stream
           webRtc.applyStream(originalStream);
 
       isWebRtcActivated = toggleButton(webrtcToggle);
     }
     if(command === "STOP")
     {
-      console.log("STOP");
-      webRtc.stop();
-      if(doesDeviceExists)
+      webRtc.stop();  // WebRtc Stops Here
+
+      if(doesDeviceExist) // If Device Exists, Turn On Self-Audio
         localVideo.muted = false;
 
       isWebRtcActivated = toggleButton(webrtcToggle);
     }
 }
 
+// Turn On & Off RNNoise
+// COMMAND can be :
+// - START (means the user has activated RNNoise)
+// - STOP (RNNoise has been stopped)
 function toggleRNNoise(command)
 {
   if(command === "START")
   {
-    console.log("rnnoise activated");
-    if(isWebRtcActivated)
+    if(isWebRtcActivated) // If WebRTC on, apply changed stream also
       webRtc.applyStream(denoisedStream);
 
-    localVideo.srcObject = denoisedStream;
+    localVideo.srcObject = denoisedStream; //Apply Denoised Stream on Local Video
 
-    if(!isWebRtcActivated)
+    if(!isWebRtcActivated) // If WebRTC is turned off, turn off self audio
       localVideo.muted = false;
 
     isRNNoiseActivated = toggleButton(rnnoiseToggle);
   }
   if(command === "STOP")
   {
-    console.log("rnnoise deactivated");
-    if(isWebRtcActivated)
+    if(isWebRtcActivated) // If WebRTC on, apply changed stream also
       webRtc.applyStream(originalStream);
 
-    localVideo.srcObject = originalStream;
+    localVideo.srcObject = originalStream; //Apply Original Stream on Local Video
 
-    if(!isWebRtcActivated)
+    if(!isWebRtcActivated) // If WebRTC is turned off, turn off self audio
       localVideo.muted = false;
 
     isRNNoiseActivated = toggleButton(rnnoiseToggle);
   }
 }
 
+// Apply a stream with RNNoise and return Denoised Stream
+// If failed, just return the input stream back
 async function startRNNoise(inputStream)
 {
-    const sink = Audio.prototype.setSinkId;
+    //const sink = Audio.prototype.setSinkId;
     const context = new AudioContext({ sampleRate: 48000 });
     try {
         const destination = context.createMediaStreamDestination();
@@ -347,9 +332,9 @@ function setButton(buttonName) {
   {
     case 'EchoToggle' :
       if(!isEchoActivated)
-        isEchoActivated = toggleButton(echoToggle);
+        isEchoActivated = toggleButton(echoToggle); // Nothing Yet
       else
-        isEchoActivated = toggleButton(echoToggle);
+        isEchoActivated = toggleButton(echoToggle); // Nothing Yet
       break;
     case 'RNNoiseToggle' :
       if(!isRNNoiseActivated)

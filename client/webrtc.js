@@ -12,10 +12,8 @@ var streamAudioTrack;
 var videoSender;
 var audioSender;
 
-
-
 // ICE Server Candidates
-var peerConnectionConfig = {
+const peerConnectionConfig = {
     'iceServers':
     [
         {'urls': 'stun:stun.stunprotocol.org:3478'},
@@ -44,6 +42,7 @@ function WebRtc(inputStream){
   peerConnection.ontrack = gotRemoteStream;
 }
 
+// Start Websocket
 WebRtc.prototype.socketConnect = function() {
   serverConnection = new WebSocket('wss://' + window.location.hostname + ':8443');
   serverConnection.onmessage = gotMessageFromServer;
@@ -54,15 +53,18 @@ WebRtc.prototype.peerConnect = function() {
   resetPeerConnect();
 }
 
+// start WebRtc by calling start
 WebRtc.prototype.start = function() {
   startCalling();
 }
 
+// stop WebRtc
 WebRtc.prototype.stop = function() {
   serverConnection.send(JSON.stringify({'type': 'CLOSEWEBRTC'}));
   peerConnection.close();
 }
 
+// change stream
 WebRtc.prototype.applyStream = function(inputStream) {
   if(audioSender != undefined)  // Check If Stream Exists; if yes, replace old track with new track
   {
@@ -133,6 +135,7 @@ function gotIceCandidate(event)
     }
 }
 
+
 function createdDescription(description)
 {
     peerConnection.setLocalDescription(description).then(function() {
@@ -140,11 +143,11 @@ function createdDescription(description)
     }).catch(errorHandler);
 }
 
+// once receives stream, apply it to remoteVideo
 function gotRemoteStream(event)
 {
     remoteVideo.pause();
     eventStream = event.streams[0];
-    //remoteVideo.srcObject = eventStream;
     remoteVideo.srcObject = eventStream;
 }
 
@@ -173,7 +176,6 @@ function errorHandler(error)
     console.log(error);
 }
 
-// Taken from http://stackoverflow.com/a/105074/515584
 // Strictly speaking, it's not a real UUID, but it gets the job done here
 function createUUID()
 {
