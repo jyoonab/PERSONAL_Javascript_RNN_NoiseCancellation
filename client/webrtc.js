@@ -149,6 +149,7 @@ function gotRemoteStream(event)
     remoteVideo.pause();
     eventStream = event.streams[0];
     remoteVideo.srcObject = eventStream;
+    streamVisualizerForRemoteVideo.apply(eventStream); // apply new stream to Remote Video Visualizer
 }
 
 // restart peerconnection

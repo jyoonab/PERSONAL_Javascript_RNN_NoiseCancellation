@@ -1,5 +1,5 @@
-let streamVisualizerWebRtc = null;
-let streamVisualizerVoiceRecord = null;
+let streamVisualizerForLocalVideo = null;
+let streamVisualizerForRemoteVideo = null;
 let streamVisualizerPsnr = null;
 let webRtc = null;
 let isEchoActivated = false;
@@ -164,32 +164,41 @@ async function getUserMediaSuccess(stream)
     else if(isWebRtcActivated && !isRNNoiseActivated) // If WebRTC is already initialized and RNNoise is not activated, just apply original stream on WebRTC
       webRtc.applyStream(originalStream);
 
-    // Activate StreamVisualizer only when Audio Stream Exists
+    // Activate StreamVisualizers only when Audio Stream Exists
     if(originalStream.getAudioTracks()[0] != undefined)
     {
-      // start stream visualizer(WebRtc)
-      if(streamVisualizerWebRtc === null)
+      /********************************
+      * Local Video Stream Visualizer
+      *********************************/
+      if(streamVisualizerForLocalVideo === null) // If streamVisualizerForLocalVideo has not been initialized
       {
-        streamVisualizerWebRtc = new StreamVisualizer(denoisedStream, localVoiceCanvas);
-        streamVisualizerWebRtc.start();
+        streamVisualizerForLocalVideo = new StreamVisualizer(originalStream, localVoiceCanvas);
+        streamVisualizerForLocalVideo.start();
       }
-      else
+      else // If streamVisualizerForLocalVideo is already initialized, just change stream
       {
-        streamVisualizerWebRtc.apply(denoisedStream);
-      }
-
-      // start stream visualizer(Voice Record)
-      if(streamVisualizerVoiceRecord === null)
-      {
-        streamVisualizerVoiceRecord = new StreamVisualizer(originalStream, remoteVoiceCanvas);
-        streamVisualizerVoiceRecord.start();
-      }
-      else
-      {
-        streamVisualizerVoiceRecord.apply(originalStream);
+        if(isRNNoiseActivated)
+          streamVisualizerForLocalVideo.apply(denoisedStream);
+        else if(!isRNNoiseActivated)
+          streamVisualizerForLocalVideo.apply(originalStream);
       }
 
-      // psnr canvas
+      /********************************
+      * Remote Video Stream Visualizer
+      *********************************/
+      if(streamVisualizerForRemoteVideo === null) // If streamVisualizerForRemoteVideo has not been initialized
+      {
+        streamVisualizerForRemoteVideo = new StreamVisualizer(remoteVideo.srcObject, remoteVoiceCanvas);
+        streamVisualizerForRemoteVideo.start();
+      }
+      else // If streamVisualizerForRemoteVideo is already initialized, just change stream
+      {
+        streamVisualizerForRemoteVideo.apply(remoteVideo.srcObject);
+      }
+
+      /********************************
+      * PSNR Stream Visualizer
+      *********************************/
       if(streamVisualizerPsnr === null) // If streamVisualizerPsnr has not been initialized
       {
         streamVisualizerPsnr = new PsnrVisualizer(originalStream, denoisedStream, demoChart);
@@ -296,7 +305,8 @@ function toggleRNNoise(command)
     if(isWebRtcActivated) // If WebRTC on, apply changed stream also
       webRtc.applyStream(denoisedStream);
 
-    localVideo.srcObject = denoisedStream; //Apply Denoised Stream on Local Video
+    localVideo.srcObject = denoisedStream; // Apply Denoised Stream to Local Video
+    streamVisualizerForLocalVideo.apply(denoisedStream); // Apply Denoised Stream to Local Video Visualizer
 
     if(!isWebRtcActivated) // If WebRTC is turned off, turn off self audio
       localVideo.muted = false;
@@ -308,7 +318,8 @@ function toggleRNNoise(command)
     if(isWebRtcActivated) // If WebRTC on, apply changed stream also
       webRtc.applyStream(originalStream);
 
-    localVideo.srcObject = originalStream; //Apply Original Stream on Local Video
+    localVideo.srcObject = originalStream; //Apply Original Stream to Local Video
+    streamVisualizerForLocalVideo.apply(originalStream); // Apply Denoised Stream to Local Video Visualizer
 
     if(!isWebRtcActivated) // If WebRTC is turned off, turn off self audio
       localVideo.muted = false;
