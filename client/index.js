@@ -1,6 +1,6 @@
-let streamVisualizerWebRtc;
-let streamVisualizerVoiceRecord;
-let streamVisualizerPsnr;
+let streamVisualizerWebRtc = null;
+let streamVisualizerVoiceRecord = null;
+let streamVisualizerPsnr = null;
 let webRtc = null;
 let isEchoActivated = false;
 let isRNNoiseActivated = false;
@@ -168,16 +168,37 @@ async function getUserMediaSuccess(stream)
     if(originalStream.getAudioTracks()[0] != undefined)
     {
       // start stream visualizer(WebRtc)
-      streamVisualizerWebRtc = new StreamVisualizer(denoisedStream, localVoiceCanvas);
-      streamVisualizerWebRtc.start();
+      if(streamVisualizerWebRtc === null)
+      {
+        streamVisualizerWebRtc = new StreamVisualizer(denoisedStream, localVoiceCanvas);
+        streamVisualizerWebRtc.start();
+      }
+      else
+      {
+        streamVisualizerWebRtc.apply(denoisedStream);
+      }
 
       // start stream visualizer(Voice Record)
-      streamVisualizerVoiceRecord = new StreamVisualizer(originalStream, remoteVoiceCanvas);
-      streamVisualizerVoiceRecord.start();
+      if(streamVisualizerVoiceRecord === null)
+      {
+        streamVisualizerVoiceRecord = new StreamVisualizer(originalStream, remoteVoiceCanvas);
+        streamVisualizerVoiceRecord.start();
+      }
+      else
+      {
+        streamVisualizerVoiceRecord.apply(originalStream);
+      }
 
       // psnr canvas
-      streamVisualizerPsnr = new PsnrVisualizer(originalStream, denoisedStream, demoChart);
-      streamVisualizerPsnr.start();
+      if(streamVisualizerPsnr === null) // If streamVisualizerPsnr has not been initialized
+      {
+        streamVisualizerPsnr = new PsnrVisualizer(originalStream, denoisedStream, demoChart);
+        streamVisualizerPsnr.start();
+      }
+      else // If streamVisualizerPsnr is already initialized, just change stream
+      {
+        streamVisualizerPsnr.apply(originalStream, denoisedStream);
+      }
     }
 }
 

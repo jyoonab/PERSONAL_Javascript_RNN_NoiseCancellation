@@ -26,8 +26,6 @@ const SMOOTHING = 0.8;
 const FFT_SIZE = 2048;
 
 function StreamVisualizer(remoteStream, canvas) {
-  //console.log('Creating StreamVisualizer with remoteStream and canvas: ',
-  //  remoteStream, canvas);
   this.canvas = canvas;
   this.drawContext = this.canvas.getContext('2d');
 
@@ -41,17 +39,7 @@ function StreamVisualizer(remoteStream, canvas) {
   }
 
   // Create a MediaStreamAudioSourceNode from the remoteStream
-  this.source = this.context.createMediaStreamSource(remoteStream);
-  //console.log('Created Web Audio source from remote stream: ', this.source);
-
-  this.analyser = this.context.createAnalyser();
-//  this.analyser.connect(this.context.destination);
-  this.analyser.minDecibels = -140;
-  this.analyser.maxDecibels = 0;
-  this.freqs = new Uint8Array(this.analyser.frequencyBinCount);
-  this.times = new Uint8Array(this.analyser.frequencyBinCount);
-
-  this.source.connect(this.analyser);
+  this.apply(remoteStream);
 
   this.startTime = 0;
   this.startOffset = 0;
@@ -59,6 +47,18 @@ function StreamVisualizer(remoteStream, canvas) {
 
 StreamVisualizer.prototype.start = function() {
   requestAnimationFrame(this.draw.bind(this));
+};
+
+StreamVisualizer.prototype.apply = function(newStream) {
+  this.source = this.context.createMediaStreamSource(newStream);
+  this.analyser = this.context.createAnalyser();
+
+  this.analyser.minDecibels = -140;
+  this.analyser.maxDecibels = 0;
+  this.freqs = new Uint8Array(this.analyser.frequencyBinCount);
+  this.times = new Uint8Array(this.analyser.frequencyBinCount);
+
+  this.source.connect(this.analyser);
 };
 
 StreamVisualizer.prototype.draw = function() {

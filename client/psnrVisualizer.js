@@ -50,14 +50,8 @@ function PsnrVisualizer(originalStream, denoisedStream, psnrChart) {
     alert('Sorry! Web Audio is not supported by this browser');
   }
 
-  // Create a MediaStreamAudioSourceNode from the remoteStream
-  this.sourceFromOriginalStream = this.context.createMediaStreamSource(originalStream);
-  this.analyserFromOriginalStream = this.context.createAnalyser();
-  this.streamDataFromOriginalStream = this.makeAnalyser(this.analyserFromOriginalStream, this.sourceFromOriginalStream);
-
-  this.sourceFromDenoisedStream = this.context.createMediaStreamSource(denoisedStream);
-  this.analyserFromDenoisedStream = this.context.createAnalyser();
-  this.streamDataFromDenoisedStream = this.makeAnalyser(this.analyserFromDenoisedStream, this.sourceFromDenoisedStream);
+  // apply streams
+  this.apply(originalStream, denoisedStream);
 
   this.startTime = 0;
   this.startOffset = 0;
@@ -75,8 +69,22 @@ PsnrVisualizer.prototype.makeAnalyser = function(inputAnalyser, inputStream){
   return streamData;
 }
 
+// Start Drawing
 PsnrVisualizer.prototype.start = function() {
   requestAnimationFrame(this.draw.bind(this));
+};
+
+// Apply Streams to the Chart
+PsnrVisualizer.prototype.apply = function(originalStream, denoisedStream) {
+  // Create a MediaStreamAudioSourceNode from the originalStream
+  this.sourceFromOriginalStream = this.context.createMediaStreamSource(originalStream);
+  this.analyserFromOriginalStream = this.context.createAnalyser();
+  this.streamDataFromOriginalStream = this.makeAnalyser(this.analyserFromOriginalStream, this.sourceFromOriginalStream);
+
+  // Create a MediaStreamAudioSourceNode from the denoisedStream
+  this.sourceFromDenoisedStream = this.context.createMediaStreamSource(denoisedStream);
+  this.analyserFromDenoisedStream = this.context.createAnalyser();
+  this.streamDataFromDenoisedStream = this.makeAnalyser(this.analyserFromDenoisedStream, this.sourceFromDenoisedStream);
 };
 
 PsnrVisualizer.prototype.draw = function() {
@@ -93,7 +101,7 @@ PsnrVisualizer.prototype.draw = function() {
   this.analyserFromDenoisedStream.getByteTimeDomainData(this.streamDataFromDenoisedStream);
 
   let tmpData = {
-            one: this.getPsnr(this.streamDataFromOriginalStream, this.streamDataFromDenoisedStream) != Infinity ? this.getPsnr(this.streamDataFromOriginalStream, this.streamDataFromDenoisedStream) : 0,
+    one: this.getPsnr(this.streamDataFromOriginalStream, this.streamDataFromDenoisedStream) != Infinity ? this.getPsnr(this.streamDataFromOriginalStream, this.streamDataFromDenoisedStream) : 0,
   };
   chartBody.series.addData(tmpData);
   chartBody.render();
