@@ -20,7 +20,7 @@ function PsnrVisualizer(originalStream, denoisedStream, psnrChart) {
         max: "100",
         series: new Rickshaw.Series.FixedDuration([{
             name: 'one',
-            color: '#446CB3'
+            color: 'white'
         }], undefined, {
             timeInterval: updateInterval,
             maxDataPoints: 100

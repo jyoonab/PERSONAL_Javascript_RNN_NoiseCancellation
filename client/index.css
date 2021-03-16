@@ -92,6 +92,7 @@ li {
   border-bottom: 30px solid;
   border-color: transparent;
   width: 340px;
+  background-color: grey;
 }
 
 #demo_chart {
@@ -104,4 +105,5 @@ li {
   top: 0;
   bottom: 10;
   width: 40px;
+  fill: white;
 }

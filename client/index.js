@@ -5,11 +5,17 @@ let webRtc = null;
 let isEchoActivated = false;
 let isRNNoiseActivated = false;
 let isWebRtcActivated = false;
+let isWebrtcECActivated = false;  // is WebRtc's basic Echo Cancellation(EC) Activated
+let isWebrtcNCActivated = false; // is WebRtc's basic Noise Cancellation(NC) Activated
 let doesDeviceExist = true;
 let denoisedStream; // Denoised Stream
 let originalStream; // Original Stream
 let audioInputsInformation;
 let videoInputsInformation;
+let vBCableIndex = 0; // Saves what Index of VB-Cable is (as Input Audio)
+let defaultInputDeviceIndex = 0; // For making audio input device back to what it was, when turning off echo cancellation
+let isWebRtcEchoCancellationActivated = true; // Is WebRTC Basic Echo Cancellation Activated
+let isWebRtcNoiseSuppressionActivated = true; // Is WebRTC Basic Noise Suppression Activated
 
 /*********************************
 Initializing Elements
@@ -36,6 +42,12 @@ const psnrCanvas = document.getElementById('psnrCanvas');
 const echoToggle = document.getElementById('echoToggle');
 const rnnoiseToggle = document.getElementById('rnnoiseToggle');
 const webrtcToggle = document.getElementById('webrtcToggle');
+const selfVoiceToggle = document.getElementById('selfVoiceToggle');
+  selfVoiceToggle.classList.add("selected");  // Initialize Self Voice Button as Activate State
+const webrtcEchoCancellationToggle = document.getElementById('webrtcEchoCancellationToggle');
+  webrtcEchoCancellationToggle.classList.add("selected");  // Initialize Webrtc Echo Cancellation Button as Activate State
+const webrtcNoiseCancellationToggle = document.getElementById('webrtcNoiseCancellationToggle');
+  webrtcNoiseCancellationToggle.classList.add("selected");  // Initialize Webrtc Noise Cancellation Button as Activate State
 
 // Hidden Button
 // Visible only when no mic or no camera found & Stream Starts Passively(means the stream is started by another user)
@@ -68,6 +80,8 @@ let dummyAudio = () => {
 
 let dummyVideo = ({width = 640, height = 480} = {}) => {
   let canvas = Object.assign(document.createElement("canvas"), {width, height});
+
+  canvas.getContext('2d').fillStyle = "green";
   canvas.getContext('2d').fillRect(0, 0, width, height);
   let dummyStream = canvas.captureStream();
   return Object.assign(dummyStream.getVideoTracks()[0], {enabled: false});
@@ -88,7 +102,11 @@ async function pageStart()
 
     let constraints = {
       video: videoInputsInformation.length != 0 ? { deviceId: videoSource ? {exact: videoSource} : undefined } : false,
-      audio: audioInputsInformation.length != 0 ? { deviceId: audioSource ? {exact: audioSource} : undefined } : false
+      audio: audioInputsInformation.length != 0 ? {
+        deviceId: audioSource ? {exact: audioSource} : undefined,
+        echoCancellation: { exact: isWebRtcEchoCancellationActivated },
+        noiseSuppression: { exact: isWebRtcNoiseSuppressionActivated },
+      } : false
     };
 
     if(constraints.video === false, constraints.audio === false) // If any device not found, just start saveDeviceInformationToSelectForm() with null
@@ -113,9 +131,10 @@ async function saveDeviceInformationToSelectForm(stream)
   );
 
   // Save Input Device Information on Select Form
-  audioInputs.forEach(
-    (device, i) => inputDevice.append(new Option( device.label || `device ${i}`, device.deviceId ))
-  );
+  audioInputs.forEach(function(device, i){
+    if(device.label.includes('VB-Audio') || device.label.includes('VB-Cable')){ vBCableIndex = i }
+    inputDevice.append(new Option( device.label || `device ${i}`, device.deviceId ));
+  });
 
   // Save Video Device Information on Select Form
   videoInputs.forEach(
@@ -270,8 +289,8 @@ async function toggleWebRtc(command)
       if(command === "START") // make call newly only when "START" (Another call should not be made on "AUTOSTART" b/c calling is already made)
         webRtc.start();
 
-      if(doesDeviceExist) // If Device Exists, Turn Off Self-Audio
-        localVideo.muted = true;
+      if(doesDeviceExist && !localVideo.muted) // If Device Exists, Turn Off Self-Audio
+        toggleSelfTest();
 
       if(command == "AUTOSTART" && !doesDeviceExist) // Enable Hidden Button
         hiddenButton.style.display = "inline";
@@ -286,12 +305,23 @@ async function toggleWebRtc(command)
     if(command === "STOP")
     {
       webRtc.stop();  // WebRtc Stops Here
-
-      if(doesDeviceExist) // If Device Exists, Turn On Self-Audio
-        localVideo.muted = false;
-
       isWebRtcActivated = toggleButton(webrtcToggle);
     }
+}
+
+function toggleEchoCancellation(command)
+{
+  if(command === "START")
+  {
+    defaultInputDeviceIndex = inputDevice.selectedIndex;
+    inputDevice[vBCableIndex].selected = true;
+  }
+  else if(command === "STOP")
+  {
+    inputDevice[defaultInputDeviceIndex].selected = true;
+  }
+  pageStart();
+  isEchoActivated = toggleButton(echoToggle);
 }
 
 // Turn On & Off RNNoise
@@ -308,9 +338,6 @@ function toggleRNNoise(command)
     localVideo.srcObject = denoisedStream; // Apply Denoised Stream to Local Video
     streamVisualizerForLocalVideo.apply(denoisedStream); // Apply Denoised Stream to Local Video Visualizer
 
-    if(!isWebRtcActivated) // If WebRTC is turned off, turn off self audio
-      localVideo.muted = false;
-
     isRNNoiseActivated = toggleButton(rnnoiseToggle);
   }
   if(command === "STOP")
@@ -320,9 +347,6 @@ function toggleRNNoise(command)
 
     localVideo.srcObject = originalStream; //Apply Original Stream to Local Video
     streamVisualizerForLocalVideo.apply(originalStream); // Apply Denoised Stream to Local Video Visualizer
-
-    if(!isWebRtcActivated) // If WebRTC is turned off, turn off self audio
-      localVideo.muted = false;
 
     isRNNoiseActivated = toggleButton(rnnoiseToggle);
   }
@@ -353,6 +377,26 @@ async function startRNNoise(inputStream)
     }
 }
 
+function toggleSelfTest()
+{
+  localVideo.muted = !toggleButton(selfVoiceToggle);
+}
+
+// Toggle WebRtc Echo Cancellation
+function toggleWebRtcEC()
+{
+  isWebRtcEchoCancellationActivated = toggleButton(webrtcEchoCancellationToggle);
+  pageStart();
+}
+
+// Toggle WebRtc Noise Cancellation
+function toggleWebRtcNC(command)
+{
+  isWebRtcNoiseSuppressionActivated = toggleButton(webrtcNoiseCancellationToggle);
+  pageStart();
+
+}
+
 function errorHandler(error)
 {
   console.log(error);
@@ -364,9 +408,9 @@ function setButton(buttonName) {
   {
     case 'EchoToggle' :
       if(!isEchoActivated)
-        isEchoActivated = toggleButton(echoToggle); // Nothing Yet
+        toggleEchoCancellation("START");
       else
-        isEchoActivated = toggleButton(echoToggle); // Nothing Yet
+        toggleEchoCancellation("STOP");
       break;
     case 'RNNoiseToggle' :
       if(!isRNNoiseActivated)
@@ -379,6 +423,15 @@ function setButton(buttonName) {
         toggleWebRtc("START");
       else
         toggleWebRtc("STOP");
+      break;
+    case 'SelfVoiceToggle' :
+      toggleSelfTest();
+      break;
+    case 'WebrtcEchoCancellationToggle' :
+      toggleWebRtcEC();
+      break;
+    case 'WebrtcNoiseCancellationToggle' :
+      toggleWebRtcNC();
       break;
     default :
       console.log("Not Configured Yet");
