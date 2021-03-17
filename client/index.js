@@ -97,6 +97,13 @@ async function pageStart()
     const videoSource = videoDevice.value;
     const hardwareInformation = await navigator.mediaDevices.enumerateDevices();
 
+    if (window.stream) {
+      console.log("stream exists");
+      window.stream.getTracks().forEach(track => {
+        track.stop();
+      });
+    }
+
     audioInputsInformation = hardwareInformation.filter((device) => device.kind === "audioinput");
     videoInputsInformation = hardwareInformation.filter((device) => device.kind === "videoinput");
 
@@ -111,7 +118,7 @@ async function pageStart()
 
     if(constraints.video === false, constraints.audio === false) // If any device not found, just start saveDeviceInformationToSelectForm() with null
         saveDeviceInformationToSelectForm(null);
-    else if(outputDevice.options.length === 0 &&  inputDevice.options.length === 0 ) // If audio or video found and this is first initializing state
+    else if(outputDevice.options.length === 0 && inputDevice.options.length === 0 ) // If audio or video found and this is first initializing state
         navigator.mediaDevices.getUserMedia(constraints).then(saveDeviceInformationToSelectForm).catch(errorHandler);
     else // If Audio or Video is Change
         navigator.mediaDevices.getUserMedia(constraints).then(getUserMediaSuccess).catch(errorHandler);
@@ -147,6 +154,8 @@ async function saveDeviceInformationToSelectForm(stream)
 // Start Initializing Everything(including RNNoise, WebRTC.. etc)
 async function getUserMediaSuccess(stream)
 {
+    window.stream = stream; // make stream available to console
+  
     let dummyTracks = (...args) => new MediaStream([dummyVideo(...args), dummyAudio()]); // Make a dummy tracks so we can replace this with empty tracks.
 
     remoteVideo.srcObject = dummyTracks();
