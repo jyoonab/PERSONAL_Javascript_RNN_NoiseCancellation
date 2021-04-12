@@ -95,8 +95,10 @@ async function pageStart()
 {
     const audioSource = inputDevice.value;
     const videoSource = videoDevice.value;
+    // fetch the hardware list
     const hardwareInformation = await navigator.mediaDevices.enumerateDevices();
 
+    // Below will prevent the stream crash once the audio or video is changed
     if (window.stream) {
       console.log("stream exists");
       window.stream.getTracks().forEach(track => {
@@ -116,7 +118,7 @@ async function pageStart()
       } : false
     };
 
-    if(constraints.video === false, constraints.audio === false) // If any device not found, just start saveDeviceInformationToSelectForm() with null
+    if(constraints.video === false && constraints.audio === false) // If any device not found, just start saveDeviceInformationToSelectForm() with null
         saveDeviceInformationToSelectForm(null);
     else if(outputDevice.options.length === 0 && inputDevice.options.length === 0 ) // If audio or video found and this is first initializing state
         navigator.mediaDevices.getUserMedia(constraints).then(saveDeviceInformationToSelectForm).catch(errorHandler);
@@ -155,7 +157,7 @@ async function saveDeviceInformationToSelectForm(stream)
 async function getUserMediaSuccess(stream)
 {
     window.stream = stream; // make stream available to console
-  
+
     let dummyTracks = (...args) => new MediaStream([dummyVideo(...args), dummyAudio()]); // Make a dummy tracks so we can replace this with empty tracks.
 
     remoteVideo.srcObject = dummyTracks();
