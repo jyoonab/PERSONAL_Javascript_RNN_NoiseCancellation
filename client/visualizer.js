@@ -120,13 +120,13 @@ function paint() {
 		canvasContext.moveTo(0, canvasHeight - getBinHeight(0));
 		let i;
 		for (i = 0; i < displayBins - 2;) {
-			var thisX = i * binWidth;
-			var nextX = (i + logBinLengths[i]) * binWidth; //First subbin of the next bin
-			var x = (thisX + nextX) / 2;
+			let thisX = i * binWidth;
+			let nextX = (i + logBinLengths[i]) * binWidth; //First subbin of the next bin
+			let x = (thisX + nextX) / 2;
 
-			var thisY = canvasHeight - getBinHeight(i);
-			var nextY = canvasHeight - getBinHeight(i + logBinLengths[i]);
-			var y = (thisY + nextY) / 2;
+			let thisY = canvasHeight - getBinHeight(i);
+			let nextY = canvasHeight - getBinHeight(i + logBinLengths[i]);
+			let y = (thisY + nextY) / 2;
 
 			canvasContext.quadraticCurveTo(thisX, thisY, x, y);
 

@@ -2,11 +2,11 @@
 const PSNR_SMOOTHING = 0.8;
 const PSNR_FFT_SIZE = 2048;
 
-var chartBody, yAxis;
-var updateInterval = 100;
-var startTime = null;
-var endTime = null;
-var elapsedTime = 0;
+let chartBody, yAxis;
+let updateInterval = 100;
+let startTime = null;
+let endTime = null;
+let elapsedTime = 0;
 
 function PsnrVisualizer(originalStream, denoisedStream, psnrChart) {
   if(chartBody === undefined)
@@ -118,8 +118,8 @@ PsnrVisualizer.prototype.getFrequencyValue = function(freq) {
 // get Peak Signal-to-Noise Ratio(PSNR) of two data
 // this this function compares Original Stream(MAXi) and Denoised Stream(MSE)
 PsnrVisualizer.prototype.getPsnr = function(originalStreamData, denoisedStreamData){
-  var maxI = this.getMse(originalStreamData);
-  var mse = this.getMse(denoisedStreamData);
+  let maxI = this.getMse(originalStreamData);
+  let mse = this.getMse(denoisedStreamData);
 
   // Calculate time difference between original & denoised stream fluctuation
   // so 'elapsedTime' shows how fast RNNoise is(ms)
@@ -140,7 +140,7 @@ PsnrVisualizer.prototype.getPsnr = function(originalStreamData, denoisedStreamDa
 
 // get Mean Squared Error(MSE) of data
 PsnrVisualizer.prototype.getMse = function(inputData){
-  var totalNumber = 0, average = 0, squaredMean = 0, result = 0;
+  let totalNumber = 0, average = 0, squaredMean = 0, result = 0;
 
   for (let i = 0; i < this.analyserFromOriginalStream.frequencyBinCount; i++) {
     totalNumber += inputData[i]; // add all numbers

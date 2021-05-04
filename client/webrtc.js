@@ -1,16 +1,16 @@
 /************************
 * WebRTC Control Class
 *************************/
-var uuid;
-var localStream;
-var peerConnection;
-var serverConnection;
-var eventStream;
+let uuid;
+let localStream;
+let peerConnection;
+let serverConnection;
+let eventStream;
 
-var streamVideoTrack;
-var streamAudioTrack;
-var videoSender;
-var audioSender;
+let streamVideoTrack;
+let streamAudioTrack;
+let videoSender;
+let audioSender;
 
 // ICE Server Candidates
 const peerConnectionConfig = {
@@ -92,7 +92,7 @@ function gotMessageFromServer(message)
 {
     if(!peerConnection) startCalling(false);
 
-    var signal = JSON.parse(message.data);
+    let signal = JSON.parse(message.data);
 
     if(signal.uuid == uuid) return;
 
