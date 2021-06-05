@@ -5,10 +5,10 @@ This repository is to demonstrate how well the RNN-based(Recurrent Neural Networ
 
 ![screenshot](https://user-images.githubusercontent.com/37427419/120878799-bb030d00-c5f9-11eb-822d-7566e53dee12.png)
 
-RNNoise is a noise suppression library based on a Recurrent Neural Network(RNN)
-
+RNNoise is a noise suppression library based on a Recurrent Neural Network(RNN)\
 Please see following page to see details of RNNoise:
 https://jmvalin.ca/demo/rnnoise/  
+
 Also, React Version of RNNoise can be found:
 https://github.com/jyoonab/PERSONAL_Javascript_RNN_NoiseCancellation_React_ver
 
