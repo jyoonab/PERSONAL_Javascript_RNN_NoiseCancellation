@@ -31,6 +31,7 @@ Npm > 6.14.10
 ```
 $ npm install
 $ npm start
+go https://localhost:8443 in Firefox/Chrome
 ```
 
 ## Current Status
