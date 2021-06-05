@@ -3,6 +3,8 @@
 ## Summary & Purpose
 This repository is to demonstrate how well the RNN-based(Recurrent Neural Network) Noise Reduction works on the real-time environment.
 
+![screenshot](https://user-images.githubusercontent.com/37427419/120878799-bb030d00-c5f9-11eb-822d-7566e53dee12.png)
+
 RNNoise is a noise suppression library based on a Recurrent Neural Network(RNN)
 
 Please see following page to see details of RNNoise:
