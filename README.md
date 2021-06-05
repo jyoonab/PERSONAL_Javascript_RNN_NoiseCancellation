@@ -1,4 +1,4 @@
-# jsDenoiser
+# RNNoise with WebRTC
 
 ## Purpose
 This repository is to demonstrate how well the AI-based noise reduction works.
