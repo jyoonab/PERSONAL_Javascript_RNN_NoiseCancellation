@@ -8,7 +8,9 @@ This repository is to demonstrate how well the RNN-based(Recurrent Neural Networ
 RNNoise is a noise suppression library based on a Recurrent Neural Network(RNN)
 
 Please see following page to see details of RNNoise:
-https://jmvalin.ca/demo/rnnoise/
+https://jmvalin.ca/demo/rnnoise/  
+Also, React Version of RNNoise can be found:
+https://github.com/jyoonab/PERSONAL_Javascript_RNN_NoiseCancellation_React_ver
 
 ## Tech & Libraries
 1. JavaScript
