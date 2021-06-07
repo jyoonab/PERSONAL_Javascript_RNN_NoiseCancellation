@@ -37,3 +37,6 @@ go https://localhost:8443 in Firefox/Chrome
 ## Current Status
 DONE\
 (RNNoise is applied to WebRTC & all meters are implemented)
+
+## Reference
+https://github.com/xiph/rnnoise
